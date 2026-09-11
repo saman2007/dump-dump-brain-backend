@@ -1,12 +1,24 @@
 {
-  "name": "brain-dump",
+  "name": "dump-dump-brain",
   "version": "1.0.0",
-  "description": "",
+  "type": "module",
+  "description": "A blog API project.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "SAMII_DEV",
+  "license": "ISC",
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.6",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.2",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
