@@ -4,7 +4,7 @@ import { timestamps } from "../columnHelpers.js";
 
 export const roleEnum = p.pgEnum("user_role", ["user", "admin"]);
 
-export const users = p.snakeCase.table("users", {
+export const usersTable = p.snakeCase.table("users", {
   id: p.uuid().defaultRandom().primaryKey(),
   email: p.varchar({ length: 255 }).unique().notNull(),
   username: p.varchar({ length: 100 }).unique().notNull(),
