@@ -1,10 +1,19 @@
 import "dotenv/config";
 import express from "express";
 import * as bodyParser from "body-parser";
+import cors from "cors";
+
+import authRouter from "./routes/auth.js";
+import { notFoundHandler } from "./middlewares/notFound.js";
 
 const app = express();
 
-app.use(bodyParser.json())
+app.use(cors());
+app.use(bodyParser.json());
+
+app.use(authRouter);
+
+app.use(notFoundHandler);
 
 const serverPort = process.env.SERVER_PORT ? +process.env.SERVER_PORT : 3000;
 
