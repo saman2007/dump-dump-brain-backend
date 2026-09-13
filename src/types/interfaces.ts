@@ -1,11 +1,11 @@
-export interface APISuccess<T> {
+export interface APISuccess<T = null> {
   success: true;
   message: string | null;
   data: T;
 }
 
-export interface APIError<T> {
+export interface APIError {
   success: false;
   message: string;
-  data: T;
+  data: unknown;
 }

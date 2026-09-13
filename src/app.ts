@@ -1,7 +1,10 @@
 import "dotenv/config";
 import express from "express";
+import * as bodyParser from "body-parser";
 
 const app = express();
+
+app.use(bodyParser.json())
 
 const serverPort = process.env.SERVER_PORT ? +process.env.SERVER_PORT : 3000;
 

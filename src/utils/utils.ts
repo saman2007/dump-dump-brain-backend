@@ -4,15 +4,15 @@ import { getColumns, type Table } from "drizzle-orm";
  */
 export const getColumnsExcept = <
   T extends Table,
-  K extends keyof T["_"]["columns"] = never,
+  const K extends keyof T["_"]["columns"] = never,
 >(
   table: T,
   excludeList: K[] = [],
 ): Omit<T["_"]["columns"], K> => {
-  const columns = { ...getColumns(table) };
+  const columns = { ...getColumns(table) } as Record<string, unknown>;
 
   for (const key of excludeList) {
-    delete (columns as Record<string, unknown>)[key as string];
+    delete columns[key as string];
   }
 
   return columns as Omit<T["_"]["columns"], K>;
@@ -23,16 +23,17 @@ export const getColumnsExcept = <
  */
 export const getColumnsIncludes = <
   T extends Table,
-  K extends keyof T["_"]["columns"],
+  const K extends keyof T["_"]["columns"],
 >(
   table: T,
   includeList: K[],
 ): Pick<T["_"]["columns"], K> => {
   const allColumns = getColumns(table);
   const selectedCols = {} as Record<string, unknown>;
-  
+
   for (const key of includeList) {
     selectedCols[key as string] = allColumns[key];
   }
+
   return selectedCols as Pick<T["_"]["columns"], K>;
 };

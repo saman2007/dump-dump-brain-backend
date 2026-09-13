@@ -1,23 +1,38 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  bcrypt:
+    specifier: ^6.0.0
+    version: 6.0.0
+  body-parser:
+    specifier: ^2.3.0
+    version: 2.3.0
   dotenv:
     specifier: ^17.4.2
     version: 17.4.2
   drizzle-orm:
     specifier: 1.0.0-rc.4
-    version: 1.0.0-rc.4(@types/pg@8.23.1)(pg@8.23.0)
+    version: 1.0.0-rc.4(@types/pg@8.23.1)(pg@8.23.0)(zod@4.6.4)
   express:
     specifier: ^5.2.1
     version: 5.2.1
   pg:
     specifier: ^8.23.0
     version: 8.23.0
+  zod:
+    specifier: ^4.6.4
+    version: 4.6.4
 
 devDependencies:
   '@tsconfig/node22':
     specifier: ^22.0.6
     version: 22.0.6
+  '@types/bcrypt':
+    specifier: ^6.0.0
+    version: 6.0.0
+  '@types/body-parser':
+    specifier: ^1.19.6
+    version: 1.19.6
   '@types/express':
     specifier: ^5.0.6
     version: 5.0.6
@@ -525,6 +540,12 @@ packages:
     resolution: {integrity: sha512-/5thavHAnWDZwH2H6eEn/T8pBEBhtuKaWGMslsj82kJfvzQgOgEMK7X4goBbIUjgVtAzPTtM9Ml64LA0uxO6Iw==}
     dev: true
 
+  /@types/bcrypt@6.0.0:
+    resolution: {integrity: sha512-/oJGukuH3D2+D+3H4JWLaAsJ/ji86dhRidzZ/Od7H/i8g+aCmvkeCc6Ni/f9uxGLSQVCRZkX2/lqEFG2BvWtlQ==}
+    dependencies:
+      '@types/node': 22.20.2
+    dev: true
+
   /@types/body-parser@1.19.6:
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
     dependencies:
@@ -793,6 +814,15 @@ packages:
     engines: {node: 18 || 20 || >=22}
     dev: true
 
+  /bcrypt@6.0.0:
+    resolution: {integrity: sha512-cU8v/EGSrnH+HnxV2z0J7/blxH8gq7Xh2JFT6Aroax7UohdmiJJlxApMxtKfuI7z68NvvVcmR78k2LbT6efhRg==}
+    engines: {node: '>= 18'}
+    requiresBuild: true
+    dependencies:
+      node-addon-api: 8.9.2
+      node-gyp-build: 4.8.4
+    dev: false
+
   /binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
@@ -923,7 +953,7 @@ packages:
       jiti: 2.7.0
     dev: true
 
-  /drizzle-orm@1.0.0-rc.4(@types/pg@8.23.1)(pg@8.23.0):
+  /drizzle-orm@1.0.0-rc.4(@types/pg@8.23.1)(pg@8.23.0)(zod@4.6.4):
     resolution: {integrity: sha512-BT+pf+qoiYHqltoA88Jmf6ilGMXPlpfE0hEJKc2adRtMCAl25Swk/t5gXcWxZNAwdtf3F5gCd2FpeOyP/pT0Hw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -1071,6 +1101,7 @@ packages:
     dependencies:
       '@types/pg': 8.23.1
       pg: 8.23.0
+      zod: 4.6.4
     dev: false
 
   /dunder-proto@1.0.1:
@@ -1432,6 +1463,16 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       content-type: 2.1.0
+    dev: false
+
+  /node-addon-api@8.9.2:
+    resolution: {integrity: sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==}
+    engines: {node: ^18 || ^20 || >= 21}
+    dev: false
+
+  /node-gyp-build@4.8.4:
+    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
+    hasBin: true
     dev: false
 
   /nodemon@3.1.14:
@@ -1819,3 +1860,7 @@ packages:
   /xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
+
+  /zod@4.6.4:
+    resolution: {integrity: sha512-AXSD6hvGdvRjajG/l1cC+d6IrhH+sjmPKtYeQdJIK8MFJl3LyClzS+o/YsVC+zQZPupAaeH5skwwm8YqYH7BqA==}
+    dev: false
