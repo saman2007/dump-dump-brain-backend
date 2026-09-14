@@ -38,7 +38,7 @@ export async function sendEmail(data: SendEmailData): Promise<Response> {
 export async function sendOtpEmail(
   to: string,
   otp: string,
-  userName?: string,
+  userName: string,
 ): Promise<Response> {
   const templatePath = path.join(TEMPLATES_DIR, "otp.pug");
   const html = pug.renderFile(templatePath, {

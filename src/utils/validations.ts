@@ -19,16 +19,3 @@ export const passwordSchema = z
   .min(8, "Password must be at least 8 characters long")
   .max(100, "Password cannot exceed 100 characters")
   .regex(/[a-zA-Z]/, "Password must contain at least one letter");
-
-export const insertUserSchema = z.object({
-  email: emailSchema,
-  username: usernameSchema,
-  password: passwordSchema,
-  displayName: z
-    .string()
-    .trim()
-    .max(100, "Display name cannot exceed 100 characters")
-    .optional(),
-});
-
-export type InsertUserInput = z.infer<typeof insertUserSchema>;

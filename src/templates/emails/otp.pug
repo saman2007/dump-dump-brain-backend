@@ -4,10 +4,7 @@ block content
   h1(style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;")
     | Verify your account
   p(style="margin: 0 0 20px 0; font-size: 14px; line-height: 22px; color: #475569;")
-    if userName
-      | Hi #[strong #{userName}], 
-    else
-      | Hello, 
+    | Hi #[strong #{userName}], 
     | use the following One-Time Password (OTP) to complete your verification. This code is valid for #[strong 5 minutes].
 
   //- OTP Code Box

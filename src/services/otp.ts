@@ -52,14 +52,14 @@ export class OTP {
   }
 
   /**
-   * A method that tries an OTP for a user.
+   * A method that attempts an OTP for a user.
    *
    * Service error codes:
    * - `0`: It means that there is no OTP requested.
-   * - `1`: It means that maximum try is exceeded. Maximum try is 5.
+   * - `1`: It means that maximum attempts exceeded. Maximum attempt is 5.
    * - `2`: The OTP is expired and you need to request a new OTP. OTP expires in 5 minutes.
    */
-  public static async try(code: string, userId: string, type: OTPType) {
+  public static async attempt(code: string, userId: string, type: OTPType) {
     const [otpRequest] = await db
       .select(
         getColumnsIncludes(otpsTable, ["attempts", "code", "expiresAt", "id"]),

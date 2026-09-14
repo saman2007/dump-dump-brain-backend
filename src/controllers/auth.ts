@@ -1,10 +1,28 @@
+import * as z from "zod";
 import { User } from "../services/auth.js";
 import { OTP } from "../services/otp.js";
 import type { Controller } from "../types/types.js";
-import type { InsertUserInput } from "../utils/validations.js";
+import {
+  emailSchema,
+  passwordSchema,
+  usernameSchema,
+} from "../utils/validations.js";
+
+export const signupUserSchema = z.object({
+  email: emailSchema,
+  username: usernameSchema,
+  password: passwordSchema,
+  displayName: z
+    .string()
+    .trim()
+    .max(100, "Display name cannot exceed 100 characters")
+    .optional(),
+});
+
+export type SignupUserType = z.infer<typeof signupUserSchema>;
 
 export const signupPostController: Controller = async (req, res) => {
-  const userData: InsertUserInput = req.body;
+  const userData: SignupUserType = req.body;
 
   const [isEmailTaken, isUsernameTaken] = await Promise.all([
     User.isEmailTaken(userData.email),

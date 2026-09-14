@@ -8,4 +8,5 @@ export interface APIError {
   success: false;
   message: string;
   data: unknown;
+  errorCode?: number;
 }
