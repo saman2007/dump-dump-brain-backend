@@ -1,4 +1,5 @@
 import { User } from "../services/auth.js";
+import { OTP } from "../services/otp.js";
 import type { Controller } from "../types/types.js";
 import type { InsertUserInput } from "../utils/validations.js";
 
@@ -25,15 +26,15 @@ export const signupPostController: Controller = async (req, res) => {
     });
 
   if (takenErrors.length !== 0)
-    return res
-      .status(409)
-      .json({
-        success: false,
-        message: "Data has conflict with DB.",
-        data: takenErrors,
-      });
+    return res.status(409).json({
+      success: false,
+      message: "Data has conflict with DB.",
+      data: takenErrors,
+    });
 
-  await User.register(userData);
+  const userId = await User.register(userData);
+
+  const otpCode = await OTP.generate(userId, "account_verification");
 
   return res
     .status(200)

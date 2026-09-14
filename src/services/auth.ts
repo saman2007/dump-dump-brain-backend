@@ -27,10 +27,15 @@ export class User {
     return users.length !== 0;
   }
 
-  public static async register(userData: InsertUserInput) {
+  public static async register(userData: InsertUserInput): Promise<string> {
     userData.password = await hash(userData.password, 10);
 
-    await db.insert(usersTable).values(userData);
+    const [{ id }] = await db
+      .insert(usersTable)
+      .values(userData)
+      .returning({ id: usersTable.id });
+
+    return id;
   }
 
   public static async getByUsername(username: string) {
