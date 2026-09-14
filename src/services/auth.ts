@@ -4,7 +4,7 @@ import { hash } from "bcrypt";
 import db from "../db/db.js";
 import { usersTable } from "../db/schemas/users.js";
 import { getColumnsExcept, getColumnsIncludes } from "../utils/utils.js";
-import { type InsertUserInput } from "../utils/validations.js";
+import type { SignupUserType } from "../controllers/auth.js";
 
 export class User {
   public static async isEmailTaken(email: string): Promise<boolean> {
@@ -27,7 +27,7 @@ export class User {
     return users.length !== 0;
   }
 
-  public static async register(userData: InsertUserInput): Promise<string> {
+  public static async register(userData: SignupUserType): Promise<string> {
     userData.password = await hash(userData.password, 10);
 
     const [{ id }] = await db

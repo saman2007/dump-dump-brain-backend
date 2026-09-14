@@ -9,15 +9,17 @@ import type { Controller } from "../types/types.js";
 import { getColumnsIncludes, ServiceError } from "../utils/utils.js";
 import { usernameSchema } from "../utils/validations.js";
 
-export const attemptOtpCodeSchema = z.object({
+const otpTypes = ["account_verification", "password_reset", "two_factor"];
+
+export const attemptOtpSchema = z.object({
   code: z.string(),
   username: usernameSchema,
-  type: z.enum(["account_verification", "password_reset", "two_factor"]),
+  type: z.enum(otpTypes),
 });
 
-export type AttemptOtpCodeType = z.infer<typeof attemptOtpCodeSchema>;
+export type AttemptOtpCodeType = z.infer<typeof attemptOtpSchema>;
 
-export const attemptOtpCodePostController: Controller<
+export const attemptOtpPostController: Controller<
   Awaited<ReturnType<(typeof OTP)["attempt"]>>
 > = async (req, res, next) => {
   const code = req.body.code;
@@ -60,6 +62,55 @@ export const attemptOtpCodePostController: Controller<
             data: null,
             message: "The generated OTP is expired. Please generate a new OTP.",
             errorCode: 2,
+          });
+      }
+    }
+
+    next(err);
+  }
+};
+
+export const generateOtpSchema = z.object({
+  username: usernameSchema,
+  type: z.enum(otpTypes),
+});
+
+export type GenerateOtpType = z.infer<typeof attemptOtpSchema>;
+
+export const generateOtpPostController: Controller<null> = async (
+  req,
+  res,
+  next,
+) => {
+  const username = req.body.username;
+  const type = req.body.type;
+
+  const [user] = await db
+    .select(getColumnsIncludes(usersTable, ["email", "id"]))
+    .from(usersTable)
+    .where(d.eq(usersTable.username, username));
+
+  try {
+    const code = await OTP.generate(user.id, type);
+
+    sendOtpEmail(user.email, code, username);
+
+    res.status(200).json({
+      success: true,
+      data: null,
+      message:
+        "OTP generated successfully and sent to your email, check your email.",
+    });
+  } catch (err) {
+    if (err instanceof ServiceError) {
+      switch (err.code) {
+        case 0:
+          return res.status(400).json({
+            success: false,
+            data: err.data,
+            message:
+              "Can't generate a new OTP during the generate cooldown period.",
+            errorCode: 0,
           });
       }
     }
