@@ -1,4 +1,5 @@
 import * as z from "zod";
+
 import { User } from "../services/auth.js";
 import { OTP } from "../services/otp.js";
 import type { Controller } from "../types/types.js";
@@ -7,6 +8,7 @@ import {
   passwordSchema,
   usernameSchema,
 } from "../utils/validations.js";
+import { sendOtpEmail, sendWelcomeEmail } from "../services/email.js";
 
 export const signupUserSchema = z.object({
   email: emailSchema,
@@ -52,7 +54,11 @@ export const signupPostController: Controller = async (req, res) => {
 
   const userId = await User.register(userData);
 
-  const otpCode = await OTP.generate(userId, "account_verification");
+  const otp = await OTP.generate(userId, "account_verification");
+
+  sendWelcomeEmail(userData.email, userData.username);
+  
+  await sendOtpEmail(userData.email, otp, userData.username);
 
   return res
     .status(200)

@@ -8,6 +8,7 @@ import {
   getColumnsIncludes,
   ServiceError,
 } from "../utils/utils.js";
+import { usersTable } from "../db/schemas/users.js";
 
 export class OTP {
   /**
@@ -59,7 +60,14 @@ export class OTP {
    * - `1`: It means that maximum attempts exceeded. Maximum attempt is 5.
    * - `2`: The OTP is expired and you need to request a new OTP. OTP expires in 5 minutes.
    */
-  public static async attempt(code: string, userId: string, type: OTPType) {
+  public static async attempt(
+    code: string,
+    userId: string,
+    type: OTPType,
+  ): Promise<{
+    maximumAttemptsExceeded: boolean;
+    success: boolean;
+  }> {
     const [otpRequest] = await db
       .select(
         getColumnsIncludes(otpsTable, ["attempts", "code", "expiresAt", "id"]),
@@ -85,8 +93,11 @@ export class OTP {
     if (isValid) {
       await db.delete(otpsTable).where(d.eq(otpsTable.id, otpRequest.id));
 
+      if (type === "account_verification")
+        await OTP.verifyAccountHandler(userId);
+
       return {
-        maximumTryExceeded: false,
+        maximumAttemptsExceeded: false,
         success: true,
       };
     } else {
@@ -96,9 +107,16 @@ export class OTP {
         .where(d.eq(otpsTable.id, otpRequest.id));
 
       return {
-        maximumTryExceeded: otpRequest.attempts + 1 >= 5,
-        success: true,
+        maximumAttemptsExceeded: otpRequest.attempts + 1 >= 5,
+        success: false,
       };
     }
+  }
+
+  private static async verifyAccountHandler(userId: string): Promise<void> {
+    await db
+      .update(usersTable)
+      .set({ isAccountVerified: true })
+      .where(d.eq(usersTable.id, userId));
   }
 }

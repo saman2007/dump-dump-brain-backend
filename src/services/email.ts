@@ -39,7 +39,7 @@ export async function sendOtpEmail(
   to: string,
   otp: string,
   userName: string,
-): Promise<Response> {
+): Promise<void> {
   const templatePath = path.join(TEMPLATES_DIR, "otp.pug");
   const html = pug.renderFile(templatePath, {
     title: "Verify your Dump Dump Brain account",
@@ -48,7 +48,7 @@ export async function sendOtpEmail(
     userName,
   });
 
-  return sendEmail({
+  await sendEmail({
     to,
     subject: `${otp} is your verification code`,
     fromName: "Dump Dump Brain",
@@ -62,18 +62,22 @@ export async function sendOtpEmail(
 export async function sendWelcomeEmail(
   to: string,
   userName: string,
-): Promise<Response> {
-  const templatePath = path.join(TEMPLATES_DIR, "welcome.pug");
-  const html = pug.renderFile(templatePath, {
-    title: "Welcome to Dump Dump Brain!",
-    preheader: `Welcome to Dump Dump Brain, ${userName}!`,
-    userName,
-  });
+): Promise<void> {
+  try {
+    const templatePath = path.join(TEMPLATES_DIR, "welcome.pug");
+    const html = pug.renderFile(templatePath, {
+      title: "Welcome to Dump Dump Brain!",
+      preheader: `Welcome to Dump Dump Brain, ${userName}!`,
+      userName,
+    });
 
-  return sendEmail({
-    to,
-    subject: "Welcome to Dump Dump Brain! 🎉",
-    fromName: "Dump Dump Brain",
-    html,
-  });
+    await sendEmail({
+      to,
+      subject: "Welcome to Dump Dump Brain! 🎉",
+      fromName: "Dump Dump Brain",
+      html,
+    });
+  } catch (e) {
+    console.log("An error occurred while sending welcome email.");
+  }
 }

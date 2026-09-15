@@ -10,7 +10,7 @@ import type { Middleware } from "../types/types.js";
 export const validateRequestData: (
   zodSchema: ZodObject,
   dataType: "body" | "query_param",
-) => Middleware = (zodSchema) => async (req, res, next) => {
+) => Middleware = (zodSchema, dataType) => async (req, res, next) => {
   const dataMap = {
     body: req.body,
     query_param: req.query,
@@ -22,7 +22,7 @@ export const validateRequestData: (
 
   if (result.success) {
     if (dataType === "body") req.body = result.data;
-    else if (dataType === "query_param") req.query = result.data;
+    else if (dataType === "query_param") req.query = result.data as any;
 
     return next();
   }

@@ -9,7 +9,11 @@ import type { Controller } from "../types/types.js";
 import { getColumnsIncludes, ServiceError } from "../utils/utils.js";
 import { usernameSchema } from "../utils/validations.js";
 
-const otpTypes = ["account_verification", "password_reset", "two_factor"];
+const otpTypes = [
+  "account_verification",
+  "password_reset",
+  "two_factor",
+] as const;
 
 export const attemptOtpSchema = z.object({
   code: z.string(),
@@ -19,24 +23,43 @@ export const attemptOtpSchema = z.object({
 
 export type AttemptOtpCodeType = z.infer<typeof attemptOtpSchema>;
 
-export const attemptOtpPostController: Controller<
-  Awaited<ReturnType<(typeof OTP)["attempt"]>>
-> = async (req, res, next) => {
-  const code = req.body.code;
-  const username = req.body.username;
-  const type = req.body.type;
+export const attemptOtpPostController: Controller<null> = async (
+  req,
+  res,
+  next,
+) => {
+  const { code, username, type } = req.body as AttemptOtpCodeType;
 
   const [user] = await db
     .select(getColumnsIncludes(usersTable, ["email", "id"]))
     .from(usersTable)
     .where(d.eq(usersTable.username, username));
 
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: "User not found.",
+      errorCode: 3,
+    });
+  }
+
   try {
     const result = await OTP.attempt(code, user.id, type);
 
-    sendOtpEmail(user.email, code, username);
-
-    return res.status(200).json({ success: true, data: result, message: null });
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: "Code successfully approved.",
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        data: { maximumAttemptsExceeded: result.maximumAttemptsExceeded },
+        message: "The sent code is wrong.",
+      });
+    }
   } catch (err) {
     if (err instanceof ServiceError) {
       switch (err.code) {
@@ -82,18 +105,26 @@ export const generateOtpPostController: Controller<null> = async (
   res,
   next,
 ) => {
-  const username = req.body.username;
-  const type = req.body.type;
+  const { username, type } = req.body as GenerateOtpType;
 
   const [user] = await db
     .select(getColumnsIncludes(usersTable, ["email", "id"]))
     .from(usersTable)
     .where(d.eq(usersTable.username, username));
 
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: "User not found.",
+      errorCode: 3,
+    });
+  }
+
   try {
     const code = await OTP.generate(user.id, type);
 
-    sendOtpEmail(user.email, code, username);
+    await sendOtpEmail(user.email, code, username).catch((err) => console.log(err));
 
     res.status(200).json({
       success: true,
