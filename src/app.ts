@@ -17,7 +17,9 @@ app.use(otpRouter);
 
 app.use(notFoundHandler);
 
-const serverPort = process.env.SERVER_PORT ? +process.env.SERVER_PORT : 3000;
+const serverPort = process.env.API_SERVER_PORT
+  ? +process.env.API_SERVER_PORT
+  : 3000;
 
 app.listen(serverPort, (err) => {
   if (err) {

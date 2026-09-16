@@ -5,7 +5,8 @@
   "description": "A blog API project.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec tsx ./src/app.ts",
+    "dev:app": "nodemon --exec tsx ./src/app.ts",
+    "dev:doc": "nodemon --exec tsx ./src/docs/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -26,6 +27,8 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
+    "@scalar/express-api-reference": "^0.10.19",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.3.0",
     "cors": "^2.8.6",
