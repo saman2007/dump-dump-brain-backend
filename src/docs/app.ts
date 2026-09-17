@@ -3,6 +3,7 @@ import { apiReference } from "@scalar/express-api-reference";
 
 import { generateOpenAPIDocument } from "./openapi.js";
 import "./routes/auth.docs.js";
+import "./routes/otp.docs.js";
 
 const app = express();
 
@@ -16,7 +17,7 @@ app.get(
     content: apiDocJsonContent,
     title: "Dump Dump Brain API Docs",
     pageTitle: "Dump Dump Brain API Docs",
-    theme: "purple",
+    theme: "saturn",
   }),
 );
 

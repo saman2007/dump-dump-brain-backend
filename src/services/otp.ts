@@ -15,7 +15,7 @@ export class OTP {
    * A method that generates an OTP for a user.
    *
    * Service error codes:
-   * - `0`: This indicates that an OTP request was sent during the generate cooldown period. The error response includes the remaining cooldown time. The resend cooldown duration is 1 minute for each user.
+   * - `0`: This indicates that an OTP request was sent during the generate cooldown period. The error response includes the remaining cooldown time. The resend cooldown duration is 1 minute for each user and each type.
    */
   public static async generate(userId: string, type: OTPType): Promise<string> {
     const [lastOTP] = await db

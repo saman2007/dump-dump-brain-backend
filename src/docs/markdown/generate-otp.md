@@ -1,0 +1,3 @@
+This API is for generating OTPs for users. Each OTP has a type which you can learn about them below in request body section. Generating an OTP with a specific type for a user has a cooldown of 1 minute. It means that when you generate a specific type of OTP for a user, to be able to generate another OTP with the same type and for the same user, you have to wait for at least 1 minute.
+
+* Note: when you generate an OTP with a specific type for a user, and then you generate another OTP with the same type and for the same user, the last generated OTP will be replaced with the new generated OTP. It means that the previous generated OTPs are not valid anymore.

@@ -8,6 +8,7 @@ import { OTP } from "../services/otp.js";
 import type { Controller } from "../types/types.js";
 import { getColumnsIncludes, ServiceError } from "../utils/utils.js";
 import { usernameSchema } from "../utils/validations.js";
+import { getApiMdFile } from "../docs/openapi.js";
 
 const otpTypes = [
   "account_verification",
@@ -36,7 +37,7 @@ export const attemptOtpPostController: Controller<null> = async (
     .where(d.eq(usersTable.username, username));
 
   if (!user) {
-    return res.status(400).json({
+    return res.status(404).json({
       success: false,
       data: null,
       message: "User not found.",
@@ -94,8 +95,14 @@ export const attemptOtpPostController: Controller<null> = async (
 };
 
 export const generateOtpSchema = z.object({
-  username: usernameSchema,
-  type: z.enum(otpTypes),
+  username: usernameSchema.meta({
+    description: "The username of the user that you want to generate OTP for.",
+    example: "test_user",
+  }),
+  type: z.enum(otpTypes).meta({
+    description: getApiMdFile("otp-types"),
+    example: "account_verification",
+  }),
 });
 
 export type GenerateOtpType = z.infer<typeof attemptOtpSchema>;
@@ -113,18 +120,20 @@ export const generateOtpPostController: Controller<null> = async (
     .where(d.eq(usersTable.username, username));
 
   if (!user) {
-    return res.status(400).json({
+    return res.status(404).json({
       success: false,
       data: null,
       message: "User not found.",
-      errorCode: 3,
+      errorCode: 1,
     });
   }
 
   try {
     const code = await OTP.generate(user.id, type);
 
-    await sendOtpEmail(user.email, code, username).catch((err) => console.log(err));
+    await sendOtpEmail(user.email, code, username).catch((err) =>
+      console.log(err),
+    );
 
     res.status(200).json({
       success: true,

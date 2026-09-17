@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { getAPIDocFile, registry } from "../openapi.js";
+import { getApiMdFile, registry } from "../openapi.js";
 import { signupUserSchema } from "../../controllers/auth.js";
 
 // Signup doc
@@ -8,7 +8,7 @@ registry.registerPath({
   method: "post",
   path: "/signup",
   summary: "/signup",
-  description: getAPIDocFile("signup"),
+  description: getApiMdFile("signup"),
   tags: ["Auth"],
   request: {
     body: {

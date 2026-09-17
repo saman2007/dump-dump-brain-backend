@@ -34,5 +34,6 @@ export const validateRequestData: (
       message,
       field: path[0],
     })),
+    errorCode: -1,
   });
 };
