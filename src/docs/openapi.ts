@@ -5,19 +5,19 @@ import {
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
 
+import fs from "fs";
+import path from "path";
+
 extendZodWithOpenApi(z);
 
 export const registry = new OpenAPIRegistry();
 
-export const bearerAuth = registry.registerComponent(
-  "securitySchemes",
-  "bearerAuth",
-  {
-    type: "http",
-    scheme: "bearer",
-    bearerFormat: "JWT",
-  },
-);
+export const getAPIDocFile = (filename: string) => {
+  return fs.readFileSync(
+    path.join(import.meta.dirname, "markdown", filename + ".md"),
+    { encoding: "utf-8" },
+  );
+};
 
 export function generateOpenAPIDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -32,9 +32,9 @@ export function generateOpenAPIDocument() {
     tags: [
       {
         name: "Auth",
-        description: "For authentication APIs",
+        description: "The documentation of auth APIs are below.",
       },
-      { name: "OTP", description: "For OTP APIs" },
+      { name: "OTP", description: "The documentation of OTP APIs are below." },
     ],
     servers: [
       {

@@ -11,14 +11,22 @@ import {
 import { sendOtpEmail, sendWelcomeEmail } from "../services/email.js";
 
 export const signupUserSchema = z.object({
-  email: emailSchema,
-  username: usernameSchema,
-  password: passwordSchema,
+  email: emailSchema.meta({ example: "test@example.com" }),
+  username: usernameSchema.meta({
+    description:
+      "Username can only contain letters, numbers, underscores, and hyphens.",
+    example: "test_user",
+  }),
+  password: passwordSchema.meta({
+    description: "Password must contain at least one letter.",
+    example: "12345678.ddb",
+  }),
   displayName: z
     .string()
     .trim()
-    .max(100, "Display name cannot exceed 100 characters")
-    .optional(),
+    .max(100, "Display name cannot exceed 100 characters.")
+    .optional()
+    .meta({ example: "Test User" }),
 });
 
 export type SignupUserType = z.infer<typeof signupUserSchema>;
@@ -31,7 +39,7 @@ export const signupPostController: Controller = async (req, res) => {
     User.isUsernameTaken(userData.username),
   ]);
 
-  const takenErrors = [];
+  const takenErrors: { field: string; message: string }[] = [];
 
   if (isEmailTaken)
     takenErrors.push({
@@ -57,7 +65,7 @@ export const signupPostController: Controller = async (req, res) => {
   const otp = await OTP.generate(userId, "account_verification");
 
   sendWelcomeEmail(userData.email, userData.username);
-  
+
   await sendOtpEmail(userData.email, otp, userData.username);
 
   return res

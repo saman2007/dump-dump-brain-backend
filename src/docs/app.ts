@@ -2,6 +2,7 @@ import express from "express";
 import { apiReference } from "@scalar/express-api-reference";
 
 import { generateOpenAPIDocument } from "./openapi.js";
+import "./routes/auth.docs.js";
 
 const app = express();
 

@@ -1,0 +1,2 @@
+Use this API for signing up a user.  
+After you send a correct form of body, an **`unverified`** user will be created in the database. A welcome email will be sent to user's email. An OTP with `account_verification` type will be generated to be used to verify user's account. The OTP will be sent to user's email. To verify the user's account, you must send the generated OTP to [/otp/attempt](/docs#tag/otp) API. And after that, the user's account will be verified.
