@@ -1,6 +1,7 @@
 import z from "zod";
 
-import { registry } from "./openapi.js";
+import { getApiMdFile, registry } from "./openapi.js";
+import { otpTypes } from "../controllers/otp.js";
 
 export const validationErrorResponseSchema = registry.register(
   "ValidationErrorResponse",
@@ -53,4 +54,9 @@ export const errorResponseSchema = registry.register(
       errorCode: z.number().optional(),
     })
     .openapi({ description: "The structure of every error responses." }),
+);
+
+export const otpTypesSchema = registry.register(
+  "OTPType",
+  z.enum(otpTypes).openapi({ description: getApiMdFile("otp-types") }),
 );

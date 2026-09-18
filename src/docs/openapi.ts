@@ -1,7 +1,7 @@
 import z from "zod";
 import {
   extendZodWithOpenApi,
-  OpenApiGeneratorV31,
+  OpenApiGeneratorV32,
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
 
@@ -20,10 +20,10 @@ export const getApiMdFile = (filename: string) => {
 };
 
 export function generateOpenAPIDocument() {
-  const generator = new OpenApiGeneratorV31(registry.definitions);
+  const generator = new OpenApiGeneratorV32(registry.definitions);
 
   return generator.generateDocument({
-    openapi: "3.1.0",
+    openapi: "3.2.0",
     info: {
       title: "Dump Dump Brain API Docs",
       version: "1.0.0",
@@ -34,7 +34,7 @@ export function generateOpenAPIDocument() {
         name: "Auth",
         description: "The documentation of auth APIs are below.",
       },
-      { name: "OTP", description: "The documentation of OTP APIs are below." },
+      { name: "OTP", description: getApiMdFile("otp") },
     ],
     servers: [
       {

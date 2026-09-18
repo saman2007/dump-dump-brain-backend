@@ -2,6 +2,7 @@ import express from "express";
 import { apiReference } from "@scalar/express-api-reference";
 
 import { generateOpenAPIDocument } from "./openapi.js";
+import "./schemas.js";
 import "./routes/auth.docs.js";
 import "./routes/otp.docs.js";
 
@@ -10,6 +11,10 @@ const app = express();
 app.use(express.json(), express.urlencoded({ extended: true }));
 
 const apiDocJsonContent = generateOpenAPIDocument();
+
+app.get("/openapi.json", (_, res) => {
+  return res.send(apiDocJsonContent);
+});
 
 app.get(
   "/docs",

@@ -10,16 +10,24 @@ import { getColumnsIncludes, ServiceError } from "../utils/utils.js";
 import { usernameSchema } from "../utils/validations.js";
 import { getApiMdFile } from "../docs/openapi.js";
 
-const otpTypes = [
+export const otpTypes = [
   "account_verification",
   "password_reset",
   "two_factor",
 ] as const;
 
 export const attemptOtpSchema = z.object({
-  code: z.string(),
-  username: usernameSchema,
-  type: z.enum(otpTypes),
+  code: z
+    .string()
+    .meta({ example: "123456", description: "A 6 digits number." }),
+  username: usernameSchema.meta({
+    example: "test_user",
+    description: "The user whose verification code is being verified.",
+  }),
+  type: z.enum(otpTypes).openapi({
+    example: "account_verification",
+    description: "The type of OTP that is being verified.",
+  }),
 });
 
 export type AttemptOtpCodeType = z.infer<typeof attemptOtpSchema>;
@@ -57,8 +65,9 @@ export const attemptOtpPostController: Controller<null> = async (
     } else {
       return res.status(400).json({
         success: false,
-        data: { maximumAttemptsExceeded: result.maximumAttemptsExceeded },
+        data: result.maximumAttemptsExceeded,
         message: "The sent code is wrong.",
+        errorCode: 4,
       });
     }
   } catch (err) {
