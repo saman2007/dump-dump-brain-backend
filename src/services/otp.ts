@@ -7,6 +7,7 @@ import {
   generateOTP,
   generateRandomString,
   getColumnsIncludes,
+  hashSHA256,
   ServiceError,
 } from "../utils/utils.js";
 import { actionKeysTable } from "../db/schemas/actionKeys.js";
@@ -99,7 +100,7 @@ export class OTP {
 
       await db
         .insert(actionKeysTable)
-        .values({ userId, keyHash: await bcrypt.hash(actionKey, 10), type });
+        .values({ userId, keyHash: hashSHA256(actionKey), type });
 
       return {
         maximumAttemptsExceeded: false,

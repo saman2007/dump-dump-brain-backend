@@ -114,7 +114,7 @@ export const generateOtpSchema = z.object({
   }),
 });
 
-export type GenerateOtpType = z.infer<typeof attemptOtpSchema>;
+export type GenerateOtpType = z.infer<typeof generateOtpSchema>;
 
 export const generateOtpPostController: Controller<null> = async (
   req,

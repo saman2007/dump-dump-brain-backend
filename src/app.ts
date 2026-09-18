@@ -6,6 +6,7 @@ import cors from "cors";
 import authRouter from "./routes/auth.js";
 import { notFoundHandler } from "./middlewares/notFound.js";
 import otpRouter from "./routes/otp.js";
+import accountRouter from "./routes/account.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(bodyParser.json());
 
 app.use(authRouter);
 app.use(otpRouter);
+app.use(accountRouter);
 
 app.use(notFoundHandler);
 

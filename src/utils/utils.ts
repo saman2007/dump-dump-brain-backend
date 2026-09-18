@@ -82,3 +82,12 @@ export const generateRandomString = (n: number): Promise<string> => {
     });
   });
 };
+
+/**
+ * A function to hash the input with sha256 algorithm
+ * 
+ * - It is used for simple hashing.
+ */
+export const hashSHA256 = (input: string) => {
+  return crypto.hash("sha256", input, "hex");
+};
