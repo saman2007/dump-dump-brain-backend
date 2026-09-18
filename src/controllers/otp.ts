@@ -32,7 +32,7 @@ export const attemptOtpSchema = z.object({
 
 export type AttemptOtpCodeType = z.infer<typeof attemptOtpSchema>;
 
-export const attemptOtpPostController: Controller<null> = async (
+export const attemptOtpPostController: Controller<string> = async (
   req,
   res,
   next,
@@ -59,7 +59,7 @@ export const attemptOtpPostController: Controller<null> = async (
     if (result.success) {
       return res.status(200).json({
         success: true,
-        data: null,
+        data: result.actionKey!,
         message: "Code successfully approved.",
       });
     } else {

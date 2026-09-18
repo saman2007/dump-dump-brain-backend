@@ -69,3 +69,16 @@ export class ServiceError<T = unknown> {
     this.code = code;
   }
 }
+
+/**
+ * A function to generate a random `n` bytes string
+ */
+export const generateRandomString = (n: number): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(n, (err, buf) => {
+      if (err) return reject(err);
+
+      return resolve(buf.toString("hex"));
+    });
+  });
+};

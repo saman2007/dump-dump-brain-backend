@@ -5,6 +5,7 @@ import db from "../db/db.js";
 import { otpsTable, type OTPType } from "../db/schemas/otps.js";
 import {
   generateOTP,
+  generateRandomString,
   getColumnsIncludes,
   ServiceError,
 } from "../utils/utils.js";
@@ -53,7 +54,7 @@ export class OTP {
   }
 
   /**
-   * A method that attempts an OTP for a user.
+   * A method that attempts an OTP for a user. If the attempt was successful, an `actionKey` will be returned.
    *
    * Service error codes:
    * - `0`: It means that there is no OTP requested.
@@ -67,6 +68,7 @@ export class OTP {
   ): Promise<{
     maximumAttemptsExceeded: boolean;
     success: boolean;
+    actionKey: string | null;
   }> {
     const [otpRequest] = await db
       .select(
@@ -93,12 +95,12 @@ export class OTP {
     if (isValid) {
       await db.delete(otpsTable).where(d.eq(otpsTable.id, otpRequest.id));
 
-      if (type === "account_verification")
-        await OTP.verifyAccountHandler(userId);
+      const actionKey = await generateRandomString(32);
 
       return {
         maximumAttemptsExceeded: false,
         success: true,
+        actionKey,
       };
     } else {
       await db
@@ -109,14 +111,8 @@ export class OTP {
       return {
         maximumAttemptsExceeded: otpRequest.attempts + 1 >= 5,
         success: false,
+        actionKey: null,
       };
     }
-  }
-
-  private static async verifyAccountHandler(userId: string): Promise<void> {
-    await db
-      .update(usersTable)
-      .set({ isAccountVerified: true })
-      .where(d.eq(usersTable.id, userId));
   }
 }
