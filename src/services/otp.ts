@@ -9,7 +9,7 @@ import {
   getColumnsIncludes,
   ServiceError,
 } from "../utils/utils.js";
-import { usersTable } from "../db/schemas/users.js";
+import { actionKeysTable } from "../db/schemas/actionKeys.js";
 
 export class OTP {
   /**
@@ -96,6 +96,10 @@ export class OTP {
       await db.delete(otpsTable).where(d.eq(otpsTable.id, otpRequest.id));
 
       const actionKey = await generateRandomString(32);
+
+      await db
+        .insert(actionKeysTable)
+        .values({ userId, keyHash: await bcrypt.hash(actionKey, 10), type });
 
       return {
         maximumAttemptsExceeded: false,
