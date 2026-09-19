@@ -14,6 +14,17 @@ export const usersTable = p.snakeCase.table("users", {
   avatar: p.text(),
   password: p.text().notNull(),
   role: userRoleEnum().default("user").notNull(),
-  isAccountVerified: p.boolean().default(false),
+  isAccountVerified: p.boolean().default(false).notNull(),
+  isTwoFactorEnabled: p.boolean().default(false).notNull(),
   ...timestamps,
 });
+
+export type UserType = typeof usersTable.$inferSelect;
+export type AuthUser = Omit<
+  UserType,
+  "createdAt" | "updatedAt" | "deletedAt" | "password"
+>;
+export type NoTimestampUser = Omit<
+  UserType,
+  "createdAt" | "updatedAt" | "deletedAt"
+>;

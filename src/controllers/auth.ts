@@ -9,6 +9,7 @@ import {
   usernameSchema,
 } from "../utils/validations.js";
 import { sendOtpEmail, sendWelcomeEmail } from "../services/email.js";
+import type { AuthUser } from "../db/schemas/users.js";
 
 export const signupUserSchema = z.object({
   email: emailSchema.meta({ example: "test@example.com" }),
@@ -71,4 +72,68 @@ export const signupPostController: Controller = async (req, res) => {
   return res
     .status(200)
     .json({ success: true, message: "User created.", data: null });
+};
+
+export const SigninUserSchema = z.object({
+  usernameOrEmail: usernameSchema.or(emailSchema),
+  password: z.string().min(1),
+});
+export type SigninUserType = z.infer<typeof SigninUserSchema>;
+
+export const signinPostController: Controller<{
+  user: AuthUser | null;
+  is2FAEnabled: boolean;
+}> = async (req, res) => {
+  const { usernameOrEmail, password } = req.body as SigninUserType;
+
+  const user = await User.getByUsernameOrEmail(usernameOrEmail);
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      data: null,
+      message: "Invalid username/email or password.",
+      errorCode: 0,
+    });
+  }
+
+  const isPasswordValid = await User.checkUserPassword(user.password, password);
+
+  if (!isPasswordValid) {
+    return res.status(401).json({
+      success: false,
+      data: null,
+      message: "Invalid username/email or password.",
+      errorCode: 0,
+    });
+  }
+
+  if (!user.isAccountVerified) {
+    return res
+      .status(403)
+      .json({
+        success: false,
+        data: null,
+        message: "The user is not verified.",
+        errorCode: 1,
+      });
+  }
+
+  if (user.isTwoFactorEnabled) {
+    await OTP.generate(user.id, "two_factor");
+
+    return res.status(200).json({
+      success: true,
+      message: "An OTP is sent to user's email.",
+      data: { user: null, is2FAEnabled: true },
+    });
+  } else {
+    const { password: _, ...authUser } = user;
+
+    return res.status(200).json({
+      success: true,
+      message: "Signed in successfully.",
+      data: { is2FAEnabled: false, user: authUser },
+    });
+  }
 };

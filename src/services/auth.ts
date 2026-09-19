@@ -1,8 +1,8 @@
 import * as d from "drizzle-orm";
-import { hash } from "bcrypt";
+import { hash, compare } from "bcrypt";
 
 import db from "../db/db.js";
-import { usersTable } from "../db/schemas/users.js";
+import { usersTable, type NoTimestampUser } from "../db/schemas/users.js";
 import { getColumnsExcept, getColumnsIncludes } from "../utils/utils.js";
 import type { SignupUserType } from "../controllers/auth.js";
 
@@ -60,5 +60,30 @@ export class User {
       .limit(1);
 
     return user;
+  }
+
+  public static async getByUsernameOrEmail(
+    usernameOrEmail: string,
+  ): Promise<NoTimestampUser | null> {
+    const [user] = await db
+      .select(
+        getColumnsExcept(usersTable, ["createdAt", "deletedAt", "updatedAt"]),
+      )
+      .from(usersTable)
+      .where(
+        d.or(
+          d.eq(usersTable.username, usernameOrEmail),
+          d.eq(usersTable.email, usernameOrEmail),
+        ),
+      );
+
+    return user;
+  }
+
+  public static async checkUserPassword(
+    userPassword: string,
+    enteredPassword: string,
+  ): Promise<boolean> {
+    return await compare(enteredPassword, userPassword);
   }
 }
