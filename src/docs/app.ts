@@ -5,6 +5,7 @@ import { generateOpenAPIDocument } from "./openapi.js";
 import "./schemas.js";
 import "./routes/auth.docs.js";
 import "./routes/otp.docs.js";
+import "./routes/account.docs.js";
 
 const app = express();
 

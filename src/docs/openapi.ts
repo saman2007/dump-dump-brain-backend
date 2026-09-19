@@ -35,6 +35,7 @@ export function generateOpenAPIDocument() {
         description: "The documentation of auth APIs are below.",
       },
       { name: "OTP", description: getApiMdFile("otp") },
+      { name: "Account", description: getApiMdFile("account") },
     ],
     servers: [
       {
