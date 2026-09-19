@@ -1,11 +1,11 @@
 info:
-  name: generate
+  name: varify-account
   type: http
   seq: 1
 
 http:
   method: POST
-  url: "{{DEV_URL}}/otp/generate"
+  url: "{{DEV_URL}}/account/verify"
   body:
     type: json
     data: ""

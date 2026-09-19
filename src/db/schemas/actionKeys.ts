@@ -1,7 +1,7 @@
 import * as p from "drizzle-orm/pg-core";
 import { usersTable } from "./users.js";
 import { timestamps } from "../columnHelpers.js";
-import { otpTypes } from "../../controllers/otp.js";
+import { otpTypes } from "../../utils/constants.js";
 
 export const actionTypes = [...otpTypes] as const;
 

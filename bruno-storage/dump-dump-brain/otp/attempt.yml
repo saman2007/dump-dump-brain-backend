@@ -6,6 +6,9 @@ info:
 http:
   method: POST
   url: "{{DEV_URL}}/otp/attempt"
+  body:
+    type: json
+    data: ""
   auth: inherit
 
 settings:

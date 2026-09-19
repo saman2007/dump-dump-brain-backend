@@ -9,12 +9,7 @@ import type { Controller } from "../types/types.js";
 import { getColumnsIncludes, ServiceError } from "../utils/utils.js";
 import { usernameSchema } from "../utils/validations.js";
 import { getApiMdFile } from "../docs/openapi.js";
-
-export const otpTypes = [
-  "account_verification",
-  "password_reset",
-  "two_factor",
-] as const;
+import { otpTypes } from "../utils/constants.js";
 
 export const attemptOtpSchema = z.object({
   code: z

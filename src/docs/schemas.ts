@@ -1,7 +1,7 @@
 import z from "zod";
 
 import { getApiMdFile, registry } from "./openapi.js";
-import { otpTypes } from "../controllers/otp.js";
+import { otpTypes } from "../utils/constants.js";
 
 export const validationErrorResponseSchema = registry.register(
   "ValidationErrorResponse",
