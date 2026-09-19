@@ -19,12 +19,18 @@ export const usersTable = p.snakeCase.table("users", {
   ...timestamps,
 });
 
-export type UserType = typeof usersTable.$inferSelect;
+export type FullUser = typeof usersTable.$inferSelect;
 export type AuthUser = Omit<
-  UserType,
-  "createdAt" | "updatedAt" | "deletedAt" | "password"
+FullUser,
+"createdAt" | "updatedAt" | "deletedAt" | "password"
 >;
 export type NoTimestampUser = Omit<
-  UserType,
+  FullUser,
   "createdAt" | "updatedAt" | "deletedAt"
 >;
+export interface UserTypeMap {
+  FULL_USER: FullUser;
+  AUTH_USER: AuthUser;
+  NO_TIMESTAMP_USER: NoTimestampUser;
+}
+export type UserTypes = keyof UserTypeMap;

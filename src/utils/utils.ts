@@ -10,7 +10,7 @@ export const getColumnsExcept = <
   const K extends keyof T["_"]["columns"] = never,
 >(
   table: T,
-  excludeList: K[] = [],
+  excludeList: readonly K[] = [],
 ): Omit<T["_"]["columns"], K> => {
   const columns = { ...getColumns(table) } as Record<string, unknown>;
 
@@ -29,7 +29,7 @@ export const getColumnsIncludes = <
   const K extends keyof T["_"]["columns"],
 >(
   table: T,
-  includeList: K[],
+  includeList: readonly K[],
 ): Pick<T["_"]["columns"], K> => {
   const allColumns = getColumns(table);
   const selectedCols = {} as Record<string, unknown>;
@@ -85,7 +85,7 @@ export const generateRandomString = (n: number): Promise<string> => {
 
 /**
  * A function to hash the input with sha256 algorithm
- * 
+ *
  * - It is used for simple hashing.
  */
 export const hashSHA256 = (input: string) => {

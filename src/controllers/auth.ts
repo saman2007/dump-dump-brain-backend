@@ -86,7 +86,10 @@ export const signinPostController: Controller<{
 }> = async (req, res) => {
   const { usernameOrEmail, password } = req.body as SigninUserType;
 
-  const user = await User.getByUsernameOrEmail(usernameOrEmail);
+  const user = await User.getByUsernameOrEmail(
+    usernameOrEmail,
+    "NO_TIMESTAMP_USER",
+  );
 
   if (!user) {
     return res.status(401).json({
@@ -97,7 +100,7 @@ export const signinPostController: Controller<{
     });
   }
 
-  const isPasswordValid = await User.checkUserPassword(user.password, password);
+  const isPasswordValid = await User.checkPassword(user.password, password);
 
   if (!isPasswordValid) {
     return res.status(401).json({
@@ -109,14 +112,12 @@ export const signinPostController: Controller<{
   }
 
   if (!user.isAccountVerified) {
-    return res
-      .status(403)
-      .json({
-        success: false,
-        data: null,
-        message: "The user is not verified.",
-        errorCode: 1,
-      });
+    return res.status(403).json({
+      success: false,
+      data: null,
+      message: "The user is not verified.",
+      errorCode: 1,
+    });
   }
 
   if (user.isTwoFactorEnabled) {
@@ -136,4 +137,22 @@ export const signinPostController: Controller<{
       data: { is2FAEnabled: false, user: authUser },
     });
   }
+};
+
+export const signin2FASchema = z.object({ actionKey: z.string() });
+
+export type Signin2FASchema = z.infer<typeof signin2FASchema>;
+
+export const signin2FAPostController: Controller = async (req, res) => {
+  const { userId } = req.body as Signin2FASchema & {
+    userId: string;
+  };
+
+  const user = await User.getById(userId, "AUTH_USER");
+
+  return res.status(200).json({
+    success: true,
+    message: "Signed in successfully.",
+    data: user,
+  });
 };

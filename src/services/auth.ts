@@ -2,11 +2,25 @@ import * as d from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 
 import db from "../db/db.js";
-import { usersTable, type NoTimestampUser } from "../db/schemas/users.js";
+import {
+  usersTable,
+  type FullUser,
+  type UserTypeMap,
+  type UserTypes,
+} from "../db/schemas/users.js";
 import { getColumnsExcept, getColumnsIncludes } from "../utils/utils.js";
 import type { SignupUserType } from "../controllers/auth.js";
 
 export class User {
+  private static readonly FIELD_EXCLUDES: Record<
+    UserTypes,
+    (keyof FullUser)[]
+  > = {
+    FULL_USER: [],
+    AUTH_USER: ["password", "updatedAt", "deletedAt"],
+    NO_TIMESTAMP_USER: ["createdAt", "updatedAt", "deletedAt"],
+  } as const;
+
   public static async isEmailTaken(email: string): Promise<boolean> {
     const users = await db
       .select(getColumnsIncludes(usersTable, ["id"]))
@@ -38,49 +52,51 @@ export class User {
     return id;
   }
 
-  public static async getByUsername(username: string) {
-    const [user] = await db
-      .select(
-        getColumnsExcept(usersTable, ["deletedAt", "updatedAt", "password"]),
-      )
+  public static async getByUsername<T extends UserTypes = "AUTH_USER">(
+    username: string,
+    userType: T = "AUTH_USER" as T,
+  ): Promise<UserTypeMap[T] | null> {
+    const [user] = (await db
+      .select(getColumnsExcept(usersTable, User.FIELD_EXCLUDES[userType]))
       .from(usersTable)
       .where(d.eq(usersTable.username, username))
-      .limit(1);
+      .limit(1)) as UserTypeMap[T][];
 
     return user;
   }
 
-  public static async getById(id: string) {
-    const [user] = await db
-      .select(
-        getColumnsExcept(usersTable, ["deletedAt", "updatedAt", "password"]),
-      )
+  public static async getById<T extends UserTypes = "AUTH_USER">(
+    id: string,
+    userType: T = "AUTH_USER" as T,
+  ): Promise<UserTypeMap[T] | null> {
+    const [user] = (await db
+      .select(getColumnsExcept(usersTable, User.FIELD_EXCLUDES[userType]))
       .from(usersTable)
       .where(d.eq(usersTable.id, id))
-      .limit(1);
+      .limit(1)) as UserTypeMap[T][];
 
     return user;
   }
 
-  public static async getByUsernameOrEmail(
+  public static async getByUsernameOrEmail<T extends UserTypes = "AUTH_USER">(
     usernameOrEmail: string,
-  ): Promise<NoTimestampUser | null> {
-    const [user] = await db
-      .select(
-        getColumnsExcept(usersTable, ["createdAt", "deletedAt", "updatedAt"]),
-      )
+    userType: T = "AUTH_USER" as T,
+  ): Promise<UserTypeMap[T] | null> {
+    const [user] = (await db
+      .select(getColumnsExcept(usersTable, User.FIELD_EXCLUDES[userType]))
       .from(usersTable)
       .where(
         d.or(
           d.eq(usersTable.username, usernameOrEmail),
           d.eq(usersTable.email, usernameOrEmail),
         ),
-      );
+      )
+      .limit(1)) as UserTypeMap[T][];
 
     return user;
   }
 
-  public static async checkUserPassword(
+  public static async checkPassword(
     userPassword: string,
     enteredPassword: string,
   ): Promise<boolean> {
