@@ -1,15 +1,23 @@
 import * as d from "drizzle-orm";
 import { hash, compare } from "bcrypt";
+import jwt from "jsonwebtoken";
 
 import db from "../db/db.js";
 import {
   usersTable,
   type FullUser,
+  type UserRole,
   type UserTypeMap,
   type UserTypes,
 } from "../db/schemas/users.js";
-import { getColumnsExcept, getColumnsIncludes } from "../utils/utils.js";
+import {
+  generateRandomString,
+  getColumnsExcept,
+  getColumnsIncludes,
+  hashSHA256,
+} from "../utils/utils.js";
 import type { SignupUserType } from "../controllers/auth.js";
+import { sessionsTable } from "../db/schemas/sessions.js";
 
 export class User {
   private static readonly FIELD_EXCLUDES: Record<
@@ -101,5 +109,79 @@ export class User {
     enteredPassword: string,
   ): Promise<boolean> {
     return await compare(enteredPassword, userPassword);
+  }
+}
+
+export class Auth {
+  // 15 minutes
+  private static ACCESS_TOKEN_EXPIRES_AT: number = 15 * 1000 * 60;
+  // 1 month(30 days)
+  private static SESSION_EXPIRES_AT: number = 24 * 1000 * 60 * 60 * 30;
+
+  public static generateAccessToken(
+    userId: string,
+    userRole: UserRole,
+    sessionId: string,
+  ): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      jwt.sign(
+        { userId, sessionId, role: userRole },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: Auth.ACCESS_TOKEN_EXPIRES_AT,
+        },
+        (err, token) => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve(token!);
+        },
+      );
+    });
+  }
+
+  public static generateRefreshToken(): Promise<string> {
+    return generateRandomString(32);
+  }
+
+  public static async createSession(
+    userId: string,
+    userRole: UserRole,
+    userIp: string | undefined,
+    userAgent: string | undefined,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    const refreshToken = await Auth.generateRefreshToken();
+    const sessionExpiresDate = new Date(Date.now() + Auth.SESSION_EXPIRES_AT);
+
+    const [{ sessionId }] = await db
+      .insert(sessionsTable)
+      .values({
+        userId,
+        refreshToken: hashSHA256(refreshToken),
+        ipAddress: userIp,
+        userAgent,
+        expiresAt: sessionExpiresDate,
+      })
+      .returning({ sessionId: sessionsTable.id });
+
+    const accessToken = await Auth.generateAccessToken(
+      userId,
+      userRole,
+      sessionId,
+    );
+
+    return { accessToken, refreshToken };
+  }
+
+  public static get getAccessTokenExpiresAt() {
+    return Auth.ACCESS_TOKEN_EXPIRES_AT;
+  }
+
+  public static get getSessionExpiresAt() {
+    return Auth.SESSION_EXPIRES_AT;
   }
 }

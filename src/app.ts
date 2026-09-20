@@ -10,6 +10,10 @@ import accountRouter from "./routes/account.js";
 
 const app = express();
 
+if (process.env.BEHIND_PROXY === "true") {
+  app.set("trust proxy", true);
+}
+
 app.use(cors());
 app.use(bodyParser.json());
 

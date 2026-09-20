@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { User } from "../services/auth.js";
+import { Auth, User } from "../services/auth.js";
 import { OTP } from "../services/otp.js";
 import type { Controller } from "../types/types.js";
 import {
@@ -10,6 +10,7 @@ import {
 } from "../utils/validations.js";
 import { sendOtpEmail, sendWelcomeEmail } from "../services/email.js";
 import type { AuthUser } from "../db/schemas/users.js";
+import { IS_WEBSITE_SECURE } from "../utils/constants.js";
 
 export const signupUserSchema = z.object({
   email: emailSchema.meta({ example: "test@example.com" }),
@@ -131,6 +132,25 @@ export const signinPostController: Controller<{
   } else {
     const { password: _, ...authUser } = user;
 
+    const { accessToken, refreshToken } = await Auth.createSession(
+      user.id,
+      user.role,
+      req.ip,
+      req.header("User-Agent") || req.header("user-agent"),
+    );
+
+    res.cookie("access_token", accessToken, {
+      maxAge: Auth.getAccessTokenExpiresAt,
+      httpOnly: true,
+      secure: IS_WEBSITE_SECURE,
+    });
+
+    res.cookie("refresh_token", refreshToken, {
+      maxAge: Auth.getSessionExpiresAt,
+      httpOnly: true,
+      secure: IS_WEBSITE_SECURE,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Signed in successfully.",
@@ -148,7 +168,26 @@ export const signin2FAPostController: Controller = async (req, res) => {
     userId: string;
   };
 
-  const user = await User.getById(userId, "AUTH_USER");
+  const user = (await User.getById(userId, "AUTH_USER"))!;
+
+  const { accessToken, refreshToken } = await Auth.createSession(
+    user.id,
+    user.role,
+    req.ip,
+    req.header("User-Agent") || req.header("user-agent"),
+  );
+
+  res.cookie("access_token", accessToken, {
+    maxAge: Auth.getAccessTokenExpiresAt,
+    httpOnly: true,
+    secure: IS_WEBSITE_SECURE,
+  });
+
+  res.cookie("refresh_token", refreshToken, {
+    maxAge: Auth.getSessionExpiresAt,
+    httpOnly: true,
+    secure: IS_WEBSITE_SECURE,
+  });
 
   return res.status(200).json({
     success: true,
