@@ -3,7 +3,7 @@ import z from "zod";
 import type { Controller } from "../types/types.js";
 import { Account } from "../services/account.js";
 
-export const verifyAccountSchema = z.object({ actionKey: z.string() });
+export const verifyAccountSchema = z.object({ actionKey: z.string().min(1) });
 
 export type VerifyAccountType = z.infer<typeof verifyAccountSchema>;
 

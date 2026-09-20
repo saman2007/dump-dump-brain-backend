@@ -11,6 +11,7 @@ import {
 import { sendOtpEmail, sendWelcomeEmail } from "../services/email.js";
 import type { AuthUser } from "../db/schemas/users.js";
 import { IS_WEBSITE_SECURE } from "../utils/constants.js";
+import { ServiceError } from "../utils/utils.js";
 
 export const signupUserSchema = z.object({
   email: emailSchema.meta({ example: "test@example.com" }),
@@ -75,11 +76,11 @@ export const signupPostController: Controller = async (req, res) => {
     .json({ success: true, message: "User created.", data: null });
 };
 
-export const SigninUserSchema = z.object({
+export const signinUserSchema = z.object({
   usernameOrEmail: usernameSchema.or(emailSchema),
   password: z.string().min(1),
 });
-export type SigninUserType = z.infer<typeof SigninUserSchema>;
+export type SigninUserType = z.infer<typeof signinUserSchema>;
 
 export const signinPostController: Controller<{
   user: AuthUser | null;
@@ -159,11 +160,14 @@ export const signinPostController: Controller<{
   }
 };
 
-export const signin2FASchema = z.object({ actionKey: z.string() });
+export const signin2FASchema = z.object({ actionKey: z.string().min(1) });
 
 export type Signin2FASchema = z.infer<typeof signin2FASchema>;
 
-export const signin2FAPostController: Controller = async (req, res) => {
+export const signin2FAPostController: Controller<AuthUser> = async (
+  req,
+  res,
+) => {
   const { userId } = req.body as Signin2FASchema & {
     userId: string;
   };
@@ -194,4 +198,91 @@ export const signin2FAPostController: Controller = async (req, res) => {
     message: "Signed in successfully.",
     data: user,
   });
+};
+
+export const refreshTokenSchema = z.object({
+  refresh_token: z.string().min(1),
+});
+
+export const refreshTokenPostController: Controller<null> = async (
+  req,
+  res,
+  next,
+) => {
+  const refreshToken = req.cookies.refresh_token;
+
+  try {
+    const { newAccessToken, newRefreshToken, newRefreshTokenExpiresAt } =
+      await Auth.refreshAccessToken(refreshToken);
+
+    res.cookie("access_token", newAccessToken, {
+      maxAge: Auth.getAccessTokenExpiresAt,
+      httpOnly: true,
+      secure: IS_WEBSITE_SECURE,
+    });
+
+    res.cookie("refresh_token", newRefreshToken, {
+      maxAge: newRefreshTokenExpiresAt,
+      httpOnly: true,
+      secure: IS_WEBSITE_SECURE,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: null,
+      message: "Successfully refreshed your access token.",
+    });
+  } catch (err) {
+    if (err instanceof ServiceError) {
+      res.clearCookie("access_token", {
+        httpOnly: true,
+        secure: IS_WEBSITE_SECURE,
+      });
+
+      res.clearCookie("refresh_token", {
+        httpOnly: true,
+        secure: IS_WEBSITE_SECURE,
+      });
+
+      if (err.code === 0) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message: "The refresh token has expired. Please signin again.",
+          errorCode: 0,
+        });
+      } else if (err.code === 1) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message: err.data,
+          errorCode: 1,
+        });
+      } else if (err.code === 4) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message: "The session has been expired. Please signin again.",
+          errorCode: 4,
+        });
+      } else if (err.code === 5) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message:
+            "The session has been terminated because of malicious activities. Please signin again.",
+          errorCode: 5,
+        });
+      } else {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message: err.data,
+          errorCode: 0,
+        });
+      }
+    }
+
+    next(err);
+  }
 };

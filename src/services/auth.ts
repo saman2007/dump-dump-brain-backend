@@ -15,6 +15,7 @@ import {
   getColumnsExcept,
   getColumnsIncludes,
   hashSHA256,
+  ServiceError,
 } from "../utils/utils.js";
 import type { SignupUserType } from "../controllers/auth.js";
 import { sessionsTable } from "../db/schemas/sessions.js";
@@ -112,11 +113,24 @@ export class User {
   }
 }
 
+interface RefreshTokenPayload {
+  sessionId: string;
+  iat: number;
+  exp: number;
+}
+
+interface AccessTokenPayload {
+  userId: string;
+  sessionId: string;
+  role: UserRole;
+  iat: number;
+  exp: number;
+}
+
 export class Auth {
-  // 15 minutes
-  private static ACCESS_TOKEN_EXPIRES_AT: number = 15 * 1000 * 60;
-  // 1 month(30 days)
-  private static SESSION_EXPIRES_AT: number = 24 * 1000 * 60 * 60 * 30;
+  private static ACCESS_TOKEN_EXPIRES_AT: number = 15 * 1000 * 60; // 15 minutes
+  private static SESSION_EXPIRES_AT: number = 24 * 1000 * 60 * 60 * 30; // 1 month(30 days)
+  private static JWT_SECRET: string = process.env.JWT_PRIVATE_KEY;
 
   public static generateAccessToken(
     userId: string,
@@ -141,8 +155,26 @@ export class Auth {
     });
   }
 
-  public static generateRefreshToken(): Promise<string> {
-    return generateRandomString(32);
+  public static generateRefreshToken(
+    sessionId: string,
+    expiresIn: number = Auth.SESSION_EXPIRES_AT,
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      jwt.sign(
+        { sessionId },
+        Auth.JWT_SECRET,
+        {
+          expiresIn,
+        },
+        (err, token) => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve(token!);
+        },
+      );
+    });
   }
 
   public static async createSession(
@@ -154,19 +186,17 @@ export class Auth {
     accessToken: string;
     refreshToken: string;
   }> {
-    const refreshToken = await Auth.generateRefreshToken();
+    const sessionId = crypto.randomUUID();
+    const refreshToken = await Auth.generateRefreshToken(sessionId);
     const sessionExpiresDate = new Date(Date.now() + Auth.SESSION_EXPIRES_AT);
 
-    const [{ sessionId }] = await db
-      .insert(sessionsTable)
-      .values({
-        userId,
-        refreshToken: hashSHA256(refreshToken),
-        ipAddress: userIp,
-        userAgent,
-        expiresAt: sessionExpiresDate,
-      })
-      .returning({ sessionId: sessionsTable.id });
+    await db.insert(sessionsTable).values({
+      userId,
+      refreshToken: hashSHA256(refreshToken),
+      ipAddress: userIp,
+      userAgent,
+      expiresAt: sessionExpiresDate,
+    });
 
     const accessToken = await Auth.generateAccessToken(
       userId,
@@ -177,11 +207,136 @@ export class Auth {
     return { accessToken, refreshToken };
   }
 
+  public static deleteSession(sessionId: string) {
+    return db.delete(sessionsTable).where(d.eq(sessionsTable.id, sessionId));
+  }
+
+  public static async refreshAccessToken(refreshToken: string): Promise<{
+    newRefreshToken: string;
+    newAccessToken: string;
+    newRefreshTokenExpiresAt: number;
+  }> {
+    let sessionId: string;
+
+    try {
+      const payload = Auth.verifyRefreshToken(refreshToken);
+
+      sessionId = payload.sessionId;
+    } catch (err) {
+      if (err instanceof ServiceError && err.code === 0) {
+        const { sessionId } = jwt.decode(refreshToken) as RefreshTokenPayload;
+
+        await Auth.deleteSession(sessionId);
+
+        throw err;
+      }
+
+      throw err;
+    }
+
+    const sessions = await db
+      .select({
+        ...getColumnsIncludes(sessionsTable, [
+          "id",
+          "expiresAt",
+          "refreshToken",
+        ]),
+        user: { id: usersTable.id, role: usersTable.role },
+      })
+      .from(sessionsTable)
+      .where(d.eq(sessionsTable.id, sessionId))
+      .innerJoin(usersTable, d.eq(sessionsTable.userId, usersTable.id))
+      .limit(1);
+
+    if (sessions.length === 0) {
+      throw new ServiceError(null, 4);
+    }
+
+    const [{ expiresAt, user, refreshToken: storedHashRefreshToken }] =
+      sessions;
+
+    if (storedHashRefreshToken !== hashSHA256(refreshToken)) {
+      throw new ServiceError(null, 5);
+    }
+
+    const newRefreshTokenExpiresAt = expiresAt.valueOf() - Date.now();
+
+    const newRefreshToken = await Auth.generateRefreshToken(
+      sessionId,
+      newRefreshTokenExpiresAt,
+    );
+
+    await db
+      .update(sessionsTable)
+      .set({ refreshToken: hashSHA256(newRefreshToken) })
+      .where(d.eq(sessionsTable.id, sessionId));
+
+    return {
+      newRefreshToken,
+      newAccessToken: await Auth.generateAccessToken(
+        user.id,
+        user.role,
+        sessionId,
+      ),
+      newRefreshTokenExpiresAt,
+    };
+  }
+
   public static get getAccessTokenExpiresAt() {
     return Auth.ACCESS_TOKEN_EXPIRES_AT;
   }
 
   public static get getSessionExpiresAt() {
     return Auth.SESSION_EXPIRES_AT;
+  }
+
+  public static verifyRefreshToken(refreshToken: string): RefreshTokenPayload {
+    try {
+      const payload = jwt.verify(
+        refreshToken,
+        Auth.JWT_SECRET,
+      ) as RefreshTokenPayload;
+
+      return payload;
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "TokenExpiredError") {
+          throw new ServiceError(err.message, 0);
+        } else if (err.name === "JsonWebTokenError") {
+          throw new ServiceError(err.message, 1);
+        } else if (err.name === "NotBeforeError") {
+          throw new ServiceError(err.message, 2);
+        } else {
+          throw new ServiceError(err.message, 3);
+        }
+      }
+
+      throw err;
+    }
+  }
+
+  public static verifyAccessToken(accessToken: string): AccessTokenPayload {
+    try {
+      const payload = jwt.verify(
+        accessToken,
+        Auth.JWT_SECRET,
+      ) as AccessTokenPayload;
+
+      return payload;
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "TokenExpiredError") {
+          throw new ServiceError(null, 0);
+        } else if (err.name === "JsonWebTokenError") {
+          throw new ServiceError(null, 1);
+        } else if (err.name === "NotBeforeError") {
+          throw new ServiceError(null, 2);
+        } else {
+          throw new ServiceError(err, 3);
+        }
+      }
+
+      throw new ServiceError(err, 3);
+    }
   }
 }

@@ -1,5 +1,6 @@
 import type { ZodObject } from "zod";
 import * as d from "drizzle-orm";
+import type { Request } from "express";
 
 import type { Middleware } from "../types/types.js";
 import db from "../db/db.js";
@@ -13,14 +14,16 @@ import { hashSHA256 } from "../utils/utils.js";
  */
 export const validateRequestData: (
   zodSchema: ZodObject,
-  dataType: "body" | "query_param",
-) => Middleware = (zodSchema, dataType) => async (req, res, next) => {
+  dataType: "body" | "query_param" | null,
+  getData?: (req: Request) => any,
+) => Middleware = (zodSchema, dataType, getData) => async (req, res, next) => {
   const dataMap = {
     body: req.body,
     query_param: req.query,
+    header: {},
   };
 
-  let data = dataMap[dataType];
+  let data = getData ? getData(req) : dataMap[dataType!];
 
   const result = zodSchema.safeParse(data);
 
