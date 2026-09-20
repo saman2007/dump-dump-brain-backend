@@ -128,8 +128,8 @@ interface AccessTokenPayload {
 }
 
 export class Auth {
-  private static ACCESS_TOKEN_EXPIRES_AT: number = 15 * 1000 * 60; // 15 minutes
-  private static SESSION_EXPIRES_AT: number = 24 * 1000 * 60 * 60 * 30; // 1 month(30 days)
+  private static ACCESS_TOKEN_EXPIRES_AT: number = 15 * 60; // 15 minutes in seconds
+  private static SESSION_EXPIRES_AT: number = 24 * 60 * 60 * 30; // 1 month(30 days) in seconds
   private static JWT_SECRET: string = process.env.JWT_PRIVATE_KEY;
 
   public static generateAccessToken(
@@ -188,7 +188,9 @@ export class Auth {
   }> {
     const sessionId = crypto.randomUUID();
     const refreshToken = await Auth.generateRefreshToken(sessionId);
-    const sessionExpiresDate = new Date(Date.now() + Auth.SESSION_EXPIRES_AT);
+    const sessionExpiresDate = new Date(
+      Date.now() + Auth.SESSION_EXPIRES_AT * 1000,
+    );
 
     await db.insert(sessionsTable).values({
       userId,
@@ -259,7 +261,9 @@ export class Auth {
       throw new ServiceError(null, 5);
     }
 
-    const newRefreshTokenExpiresAt = expiresAt.valueOf() - Date.now();
+    const newRefreshTokenExpiresAt = Math.floor(
+      (expiresAt.valueOf() - Date.now()) / 1000,
+    );
 
     const newRefreshToken = await Auth.generateRefreshToken(
       sessionId,

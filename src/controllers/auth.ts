@@ -82,10 +82,10 @@ export const signinUserSchema = z.object({
 });
 export type SigninUserType = z.infer<typeof signinUserSchema>;
 
-export const signinPostController: Controller<{
-  user: AuthUser | null;
-  is2FAEnabled: boolean;
-}> = async (req, res) => {
+export const signinPostController: Controller<AuthUser | null> = async (
+  req,
+  res,
+) => {
   const { usernameOrEmail, password } = req.body as SigninUserType;
 
   const user = await User.getByUsernameOrEmail(
@@ -123,12 +123,14 @@ export const signinPostController: Controller<{
   }
 
   if (user.isTwoFactorEnabled) {
-    await OTP.generate(user.id, "two_factor");
+    const otp = await OTP.generate(user.id, "two_factor");
+
+    await sendOtpEmail(user.email, otp, user.username);
 
     return res.status(200).json({
       success: true,
       message: "An OTP is sent to user's email.",
-      data: { user: null, is2FAEnabled: true },
+      data: null,
     });
   } else {
     const { password: _, ...authUser } = user;
@@ -141,13 +143,13 @@ export const signinPostController: Controller<{
     );
 
     res.cookie("access_token", accessToken, {
-      maxAge: Auth.getAccessTokenExpiresAt,
+      maxAge: Auth.getAccessTokenExpiresAt * 1000,
       httpOnly: true,
       secure: IS_WEBSITE_SECURE,
     });
 
     res.cookie("refresh_token", refreshToken, {
-      maxAge: Auth.getSessionExpiresAt,
+      maxAge: Auth.getSessionExpiresAt * 1000,
       httpOnly: true,
       secure: IS_WEBSITE_SECURE,
     });
@@ -155,7 +157,7 @@ export const signinPostController: Controller<{
     return res.status(200).json({
       success: true,
       message: "Signed in successfully.",
-      data: { is2FAEnabled: false, user: authUser },
+      data: authUser,
     });
   }
 };
@@ -182,13 +184,13 @@ export const signin2FAPostController: Controller<AuthUser> = async (
   );
 
   res.cookie("access_token", accessToken, {
-    maxAge: Auth.getAccessTokenExpiresAt,
+    maxAge: Auth.getAccessTokenExpiresAt * 1000,
     httpOnly: true,
     secure: IS_WEBSITE_SECURE,
   });
 
   res.cookie("refresh_token", refreshToken, {
-    maxAge: Auth.getSessionExpiresAt,
+    maxAge: Auth.getSessionExpiresAt * 1000,
     httpOnly: true,
     secure: IS_WEBSITE_SECURE,
   });
@@ -216,13 +218,13 @@ export const refreshTokenPostController: Controller<null> = async (
       await Auth.refreshAccessToken(refreshToken);
 
     res.cookie("access_token", newAccessToken, {
-      maxAge: Auth.getAccessTokenExpiresAt,
+      maxAge: Auth.getAccessTokenExpiresAt * 1000,
       httpOnly: true,
       secure: IS_WEBSITE_SECURE,
     });
 
     res.cookie("refresh_token", newRefreshToken, {
-      maxAge: newRefreshTokenExpiresAt,
+      maxAge: newRefreshTokenExpiresAt * 1000,
       httpOnly: true,
       secure: IS_WEBSITE_SECURE,
     });
