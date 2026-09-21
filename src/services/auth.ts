@@ -224,13 +224,9 @@ export class Auth {
     try {
       payload = Auth.verifyRefreshToken(refreshToken);
     } catch (err) {
-      if (err instanceof ServiceError && err.code === 0) {
-        const { sessionId } = jwt.decode(refreshToken) as RefreshTokenPayload;
+      const { sessionId } = jwt.decode(refreshToken) as RefreshTokenPayload;
 
-        await Auth.deleteSession(sessionId);
-
-        throw err;
-      }
+      await Auth.deleteSession(sessionId);
 
       throw err;
     }
@@ -252,14 +248,16 @@ export class Auth {
       .limit(1);
 
     if (sessions.length === 0) {
-      throw new ServiceError(null, 4);
+      throw new ServiceError(null, 3);
     }
 
     const [{ expiresAt, user, refreshToken: storedHashRefreshToken }] =
       sessions;
 
     if (storedHashRefreshToken !== hashSHA256(refreshToken)) {
-      throw new ServiceError(null, 5);
+      await Auth.deleteSession(sessionId);
+
+      throw new ServiceError(null, 4);
     }
 
     const newRefreshTokenExpiresAt = Math.floor(
@@ -312,7 +310,7 @@ export class Auth {
         } else if (err.name === "NotBeforeError") {
           throw new ServiceError(err.message, 2);
         } else {
-          throw new ServiceError(err.message, 3);
+          throw err;
         }
       }
 

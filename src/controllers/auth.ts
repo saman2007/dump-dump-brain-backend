@@ -174,13 +174,10 @@ export const signinPostController: Controller<AuthUser | string> = async (
 };
 
 export const signin2FASchema = z.object({
-  actionKey: z
-    .string()
-    .min(1)
-    .meta({
-      description:
-        "The action key you got from [attempt OTP API](/docs#tag/otp/POST/otp/attempt).",
-    }),
+  actionKey: z.string().min(1).meta({
+    description:
+      "The action key you got from [attempt OTP API](/docs#tag/otp/POST/otp/attempt).",
+  }),
 });
 
 export type Signin2FASchema = z.infer<typeof signin2FASchema>;
@@ -279,27 +276,27 @@ export const refreshTokenPostController: Controller<null> = async (
           message: err.data,
           errorCode: 1,
         });
-      } else if (err.code === 4) {
+      } else if (err.code === 2) {
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message: err.data,
+          errorCode: 2,
+        });
+      } else if (err.code === 3) {
         return res.status(401).json({
           success: false,
           data: null,
           message: "The session has been expired. Please signin again.",
           errorCode: 4,
         });
-      } else if (err.code === 5) {
+      } else if (err.code === 4) {
         return res.status(401).json({
           success: false,
           data: null,
           message:
             "The session has been terminated because of malicious activities. Please signin again.",
           errorCode: 5,
-        });
-      } else {
-        return res.status(401).json({
-          success: false,
-          data: null,
-          message: err.data,
-          errorCode: 0,
         });
       }
     }
