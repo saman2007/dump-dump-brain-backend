@@ -1,13 +1,15 @@
 import z from "zod";
 
 import { getApiMdFile, registry } from "../openapi.js";
-import { signupUserSchema } from "../../controllers/auth.js";
+import { signinUserSchema, signupUserSchema } from "../../controllers/auth.js";
+import { authUserSchema } from "../schemas.js";
+import { usernameSchema } from "../../utils/validations.js";
 
-// Signup doc
+// Sign up doc
 registry.registerPath({
   method: "post",
-  path: "/signup",
-  summary: "/signup",
+  path: "/auth/signup",
+  summary: "/auth/signup",
   description: getApiMdFile("signup"),
   tags: ["Auth"],
   request: {
@@ -66,6 +68,90 @@ registry.registerPath({
               description:
                 "When a user with the info of request body already exists, a response with 409 status will be sent back.",
             }),
+        },
+      },
+    },
+  },
+});
+
+// Sign in doc
+registry.registerPath({
+  method: "post",
+  path: "/auth/signin",
+  summary: "/auth/signin",
+  description: getApiMdFile("signin"),
+  tags: ["Auth"],
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: signinUserSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description:
+        "If the account's 2FA is not enable, user will be signed in immediately.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            message: z.literal("Signed in successfully."),
+            data: authUserSchema,
+          }),
+        },
+      },
+      headers: z.object({
+        "Set-Cookie": z.string().openapi({
+          description: "Contains `refresh_token` and `access_token`.",
+        }),
+      }),
+    },
+    202: {
+      description:
+        "If the account's 2FA is enabled, user needs to verify the sent OTP.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            message: z.literal("An OTP is sent to user's email."),
+            data: usernameSchema.openapi({ example: "test_user" }),
+          }),
+        },
+      },
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("Invalid username/email or password."),
+            errorCode: z.literal(1),
+          }),
+        },
+      },
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("The user is not verified."),
+            errorCode: z.literal(2),
+          }),
+        },
+      },
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("User doesn't exist."),
+            errorCode: z.literal(0),
+          }),
         },
       },
     },

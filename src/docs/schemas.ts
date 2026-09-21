@@ -2,6 +2,7 @@ import z from "zod";
 
 import { getApiMdFile, registry } from "./openapi.js";
 import { otpTypes } from "../utils/constants.js";
+import { emailSchema, usernameSchema } from "../utils/validations.js";
 
 export const validationErrorResponseSchema = registry.register(
   "ValidationErrorResponse",
@@ -59,4 +60,29 @@ export const errorResponseSchema = registry.register(
 export const otpTypesSchema = registry.register(
   "OTPType",
   z.enum(otpTypes).openapi({ description: getApiMdFile("otp-types") }),
+);
+
+export const userRoleSchema = registry.register(
+  "UserRole",
+  z
+    .enum(["user", "admin"])
+    .openapi({ description: "A role that each user can have." }),
+);
+
+export const authUserSchema = registry.register(
+  "AuthUser",
+  z
+    .object({
+      id: z.uuidv4(),
+      email: emailSchema.openapi({ example: "test@example.com" }),
+      username: usernameSchema.openapi({ example: "test_user" }),
+      displayName: z.string().nullable().openapi({ example: "Test User" }),
+      avatar: z.string().nullable(),
+      role: userRoleSchema.openapi({ example: "user" }),
+      isAccountVerified: z.boolean().openapi({ example: true }),
+      isTwoFactorEnabled: z.boolean().openapi({ example: false }),
+    })
+    .openapi({
+      description: "The user data of the current signed in user",
+    }),
 );

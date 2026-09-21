@@ -20,7 +20,7 @@ export const getApiMdFile = (filename: string) => {
 };
 
 export function generateOpenAPIDocument() {
-  const generator = new OpenApiGeneratorV32(registry.definitions);
+  const generator = new OpenApiGeneratorV32(registry.definitions, {unionPreferredType:"oneOf"});
 
   return generator.generateDocument({
     openapi: "3.2.0",
@@ -32,7 +32,7 @@ export function generateOpenAPIDocument() {
     tags: [
       {
         name: "Auth",
-        description: "The documentation of auth APIs are below.",
+        description: getApiMdFile("auth"),
       },
       { name: "OTP", description: getApiMdFile("otp") },
       { name: "Account", description: getApiMdFile("account") },

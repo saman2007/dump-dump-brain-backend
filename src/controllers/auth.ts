@@ -77,12 +77,23 @@ export const signupPostController: Controller = async (req, res) => {
 };
 
 export const signinUserSchema = z.object({
-  usernameOrEmail: usernameSchema.or(emailSchema),
-  password: z.string().min(1),
+  usernameOrEmail: z.union([
+    usernameSchema.meta({
+      summary: "Username",
+      description: "Username",
+      example: "test_user",
+    }),
+    emailSchema.meta({
+      summary: "Email",
+      description: "Email",
+      example: "test@example.com",
+    }),
+  ]),
+  password: z.string().min(1).meta({ example: "123456.ddb" }),
 });
 export type SigninUserType = z.infer<typeof signinUserSchema>;
 
-export const signinPostController: Controller<AuthUser | null> = async (
+export const signinPostController: Controller<AuthUser | string> = async (
   req,
   res,
 ) => {
@@ -94,10 +105,10 @@ export const signinPostController: Controller<AuthUser | null> = async (
   );
 
   if (!user) {
-    return res.status(401).json({
+    return res.status(404).json({
       success: false,
       data: null,
-      message: "Invalid username/email or password.",
+      message: "User doesn't exist.",
       errorCode: 0,
     });
   }
@@ -109,7 +120,7 @@ export const signinPostController: Controller<AuthUser | null> = async (
       success: false,
       data: null,
       message: "Invalid username/email or password.",
-      errorCode: 0,
+      errorCode: 1,
     });
   }
 
@@ -118,7 +129,7 @@ export const signinPostController: Controller<AuthUser | null> = async (
       success: false,
       data: null,
       message: "The user is not verified.",
-      errorCode: 1,
+      errorCode: 2,
     });
   }
 
@@ -127,10 +138,10 @@ export const signinPostController: Controller<AuthUser | null> = async (
 
     await sendOtpEmail(user.email, otp, user.username);
 
-    return res.status(200).json({
+    return res.status(202).json({
       success: true,
       message: "An OTP is sent to user's email.",
-      data: null,
+      data: user.username,
     });
   } else {
     const { password: _, ...authUser } = user;
