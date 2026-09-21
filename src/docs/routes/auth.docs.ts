@@ -1,7 +1,11 @@
 import z from "zod";
 
 import { getApiMdFile, registry } from "../openapi.js";
-import { signinUserSchema, signupUserSchema } from "../../controllers/auth.js";
+import {
+  signin2FASchema,
+  signinUserSchema,
+  signupUserSchema,
+} from "../../controllers/auth.js";
 import { authUserSchema } from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 
@@ -154,6 +158,38 @@ registry.registerPath({
           }),
         },
       },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/auth/signin/2fa",
+  summary: "/auth/signin/2fa",
+  tags: ["Auth"],
+  description: getApiMdFile("signin-2fa"),
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: signin2FASchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            message: z.literal("Signed in successfully."),
+            data: authUserSchema,
+          }),
+        },
+      },
+      headers: z.object({
+        "Set-Cookie": z.string().openapi({
+          description: "Contains `refresh_token` and `access_token`.",
+        }),
+      }),
     },
   },
 });

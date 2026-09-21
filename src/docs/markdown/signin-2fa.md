@@ -1,0 +1,1 @@
+An API to sign in using an action key. To see when to use this API, read the authentication flow in [here](/docs#tag/auth).

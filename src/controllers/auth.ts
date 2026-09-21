@@ -173,7 +173,15 @@ export const signinPostController: Controller<AuthUser | string> = async (
   }
 };
 
-export const signin2FASchema = z.object({ actionKey: z.string().min(1) });
+export const signin2FASchema = z.object({
+  actionKey: z
+    .string()
+    .min(1)
+    .meta({
+      description:
+        "The action key you got from [attempt OTP API](/docs#tag/otp/POST/otp/attempt).",
+    }),
+});
 
 export type Signin2FASchema = z.infer<typeof signin2FASchema>;
 
