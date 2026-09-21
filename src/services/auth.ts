@@ -193,6 +193,7 @@ export class Auth {
     );
 
     await db.insert(sessionsTable).values({
+      id: sessionId,
       userId,
       refreshToken: hashSHA256(refreshToken),
       ipAddress: userIp,
@@ -218,12 +219,10 @@ export class Auth {
     newAccessToken: string;
     newRefreshTokenExpiresAt: number;
   }> {
-    let sessionId: string;
+    let payload: RefreshTokenPayload;
 
     try {
-      const payload = Auth.verifyRefreshToken(refreshToken);
-
-      sessionId = payload.sessionId;
+      payload = Auth.verifyRefreshToken(refreshToken);
     } catch (err) {
       if (err instanceof ServiceError && err.code === 0) {
         const { sessionId } = jwt.decode(refreshToken) as RefreshTokenPayload;
@@ -235,6 +234,8 @@ export class Auth {
 
       throw err;
     }
+
+    const { sessionId } = payload;
 
     const sessions = await db
       .select({

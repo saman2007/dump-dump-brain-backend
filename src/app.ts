@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import * as bodyParser from "body-parser";
 import cors from "cors";
+import cookie from "cookie-parser";
 
 import authRouter from "./routes/auth.js";
 import { notFoundHandler } from "./middlewares/notFound.js";
@@ -16,6 +17,7 @@ if (process.env.BEHIND_PROXY === "true") {
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(cookie());
 
 app.use(authRouter);
 app.use(otpRouter);
