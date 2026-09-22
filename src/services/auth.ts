@@ -137,10 +137,10 @@ export class Auth {
     userRole: UserRole,
     sessionId: string,
   ): Promise<string> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       jwt.sign(
         { userId, sessionId, role: userRole },
-        process.env.JWT_PRIVATE_KEY,
+        Auth.JWT_SECRET,
         {
           expiresIn: Auth.ACCESS_TOKEN_EXPIRES_AT,
         },
@@ -224,6 +224,11 @@ export class Auth {
     try {
       payload = Auth.verifyRefreshToken(refreshToken);
     } catch (err) {
+      /**
+       * When an error happens, it definitely means that the token has been expired or someone is trying to get an access token illegally.
+       * I decided to delete the session in this case, for security purposes, if possible. Because there could be a `sessionId` in the refresh token.
+       * And the sessionId could be real, so in this case I try to delete the session to make things harder for the attacker.
+       */
       const { sessionId } = jwt.decode(refreshToken) as RefreshTokenPayload;
 
       if (sessionId) {
@@ -251,6 +256,7 @@ export class Auth {
       .innerJoin(usersTable, d.eq(sessionsTable.userId, usersTable.id))
       .limit(1);
 
+    // When no session exist with the refresh token's sessionId, it means that the session has been terminated.
     if (sessions.length === 0) {
       throw new ServiceError(null, 3);
     }
@@ -258,12 +264,18 @@ export class Auth {
     const [{ expiresAt, user, refreshToken: storedHashRefreshToken }] =
       sessions;
 
+    /**
+     * When a valid refresh token is sent, but it doesn't match the refresh token stored in the session,
+     * it could mean that someone has access to the user's refresh token. 
+     * Because we rotate the refresh token after refreshing the access token.  
+     */
     if (storedHashRefreshToken !== hashSHA256(refreshToken)) {
       await Auth.deleteSession(sessionId);
 
       throw new ServiceError(null, 4);
     }
 
+    // Making the new refresh token's expiration time the same as the original expiration time
     const newRefreshTokenExpiresAt = Math.floor(
       (expiresAt.valueOf() - Date.now()) / 1000,
     );
