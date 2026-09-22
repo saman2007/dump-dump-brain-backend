@@ -1,0 +1,19 @@
+info:
+  name: varify-account
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{DEV_URL}}/account/verify"
+  body:
+    type: json
+    data: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

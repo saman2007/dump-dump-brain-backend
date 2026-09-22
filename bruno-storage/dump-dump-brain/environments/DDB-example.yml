@@ -1,0 +1,5 @@
+name: DDB
+variables:
+  - name: DEV_URL
+    value: http://localhost:3000
+    description: "The development full url without ending slash."

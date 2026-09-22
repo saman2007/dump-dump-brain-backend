@@ -1,0 +1,19 @@
+info:
+  name: attempt
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{DEV_URL}}/otp/attempt"
+  body:
+    type: json
+    data: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

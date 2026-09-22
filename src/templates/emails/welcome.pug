@@ -1,0 +1,24 @@
+extends layout.pug
+
+block content
+  h1(style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;")
+    | Welcome aboard, #{userName}! 👋
+  p(style="margin: 0 0 20px 0; font-size: 14px; line-height: 22px; color: #475569;")
+    | Your account is now ready. #[strong Dump Dump Brain] is built to help you capture unfiltered ideas, write notes, and publish blogs with zero friction.
+
+  //- Feature Highlights
+  div(style="margin: 20px 0 24px 0; padding: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;")
+    table(role="presentation", width="100%", cellspacing="0", cellpadding="0", border="0")
+      tr
+        td(style="padding: 6px 0; font-size: 13px; line-height: 20px; color: #334155;")
+          | ✍️ #[strong Write & Publish:] Format your thoughts seamlessly with markdown support.
+      tr
+        td(style="padding: 6px 0; font-size: 13px; line-height: 20px; color: #334155;")
+          | 💡 #[strong Brain Dumps:] Keep quick notes, snippets, and drafts organized in one place.
+      tr
+        td(style="padding: 6px 0; font-size: 13px; line-height: 20px; color: #334155;")
+          | 🌐 #[strong Explore:] Read ideas and blog posts from fellow thinkers.
+
+  p(style="margin: 0; font-size: 13px; line-height: 20px; color: #64748b;")
+    | Ready to share your first thought? Log in and start writing!
+

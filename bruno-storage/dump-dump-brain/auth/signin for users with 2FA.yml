@@ -1,0 +1,19 @@
+info:
+  name: signin for users with 2FA
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{DEV_URL}}/auth/signin/2fa"
+  body:
+    type: json
+    data: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

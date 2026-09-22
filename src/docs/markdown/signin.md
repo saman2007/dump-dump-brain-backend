@@ -1,0 +1,3 @@
+To sign in, send the username/email and password to this API.  
+In case that the 2FA is enabled for the account, an OTP with `type = two_factor` will be generated and will be sent to the account's email. The response status is `202` in this case. Verify the OTP using the [/otp/attempt API](/docs#tag/otp/POST/otp/attempt) and get an action key. Then sign in using that action key with [/auth/signin/2fa API](/docs#tag/auth/POST/auth/signin/2fa).  
+In case that the 2FA is disabled for the account, user will be signed in. The response status is `200` in this case.

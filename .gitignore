@@ -20,6 +20,7 @@ out/
 .env.production.local
 *.env
 !*.env.example
+bruno-storage/dump-dump-brain/environments/DDB.yml
 
 # Logs & Debug
 logs
