@@ -226,7 +226,11 @@ export class Auth {
     } catch (err) {
       const { sessionId } = jwt.decode(refreshToken) as RefreshTokenPayload;
 
-      await Auth.deleteSession(sessionId);
+      if (sessionId) {
+        try {
+          await Auth.deleteSession(sessionId);
+        } catch {}
+      }
 
       throw err;
     }
