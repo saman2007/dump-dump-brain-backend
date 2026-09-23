@@ -14,3 +14,8 @@ export const sessionsTable = p.snakeCase.table("sessions", {
   expiresAt: p.timestamp({ withTimezone: true }).notNull(),
   createdAt: timestamps.createdAt,
 });
+
+export type RenderSession = Omit<
+  typeof sessionsTable.$inferSelect,
+  "refreshToken"
+>;

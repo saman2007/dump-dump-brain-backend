@@ -113,13 +113,13 @@ export class User {
   }
 }
 
-interface RefreshTokenPayload {
+export interface RefreshTokenPayload {
   sessionId: string;
   iat: number;
   exp: number;
 }
 
-interface AccessTokenPayload {
+export interface AccessTokenPayload {
   userId: string;
   sessionId: string;
   role: UserRole;

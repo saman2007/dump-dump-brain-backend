@@ -8,6 +8,7 @@ import authRouter from "./routes/auth.js";
 import { notFoundHandler } from "./middlewares/notFound.js";
 import otpRouter from "./routes/otp.js";
 import accountRouter from "./routes/account.js";
+import sessionsRouter from "./routes/sessions.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cookie());
 app.use(authRouter);
 app.use(otpRouter);
 app.use(accountRouter);
+app.use(sessionsRouter);
 
 app.use(notFoundHandler);
 
