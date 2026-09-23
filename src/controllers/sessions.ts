@@ -12,7 +12,7 @@ export const userSessionsGetController: Controller<RenderSession[]> = async (
 
   const sessions = await Session.getAll(userId);
 
-  return res.json({ success: true, data: sessions, message: "" });
+  return res.json({ success: true, data: sessions, message: null });
 };
 
 export const revokeSessionSchema = z.object({ sessionId: z.string().min(1) });
@@ -26,11 +26,11 @@ export const revokeSessionDeleteController: Controller<RenderSession> = async (
   const { sessionId } = req.body as RevokeSessionType;
   const { userId } = req.accessTokenPayload!;
 
-  const deletedSession = await Session.delete(sessionId, userId);
+  const revokedSession = (await Session.revoke(sessionId, userId)) ?? null;
 
   return res.status(200).json({
     success: true,
-    data: deletedSession,
-    message: "Deleted the session successfully.",
+    data: revokedSession,
+    message: "Revoked the session successfully.",
   });
 };

@@ -11,7 +11,7 @@ const sessionsRouter = express.Router();
 
 sessionsRouter.get("/sessions", privateEndpoint, userSessionsGetController);
 sessionsRouter.delete(
-  "/sessions/delete",
+  "/sessions/revoke",
   privateEndpoint,
   validateRequestData(revokeSessionSchema, "body"),
   revokeSessionDeleteController,

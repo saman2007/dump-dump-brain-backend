@@ -9,14 +9,14 @@ export class Session {
     return db
       .select(getColumnsExcept(sessionsTable, ["refreshToken"]))
       .from(sessionsTable)
-      .where(d.eq(sessionsTable.id, userId));
+      .where(d.eq(sessionsTable.userId, userId));
   }
 
-  public static async delete(
+  public static async revoke(
     sessionId: string,
     userId: string,
   ): Promise<RenderSession> {
-    const [deletedSession] = await db
+    const [revokedSession] = await db
       .delete(sessionsTable)
       .where(
         d.and(
@@ -26,6 +26,6 @@ export class Session {
       )
       .returning(getColumnsExcept(sessionsTable, ["refreshToken"]));
 
-    return deletedSession;
+    return revokedSession;
   }
 }
