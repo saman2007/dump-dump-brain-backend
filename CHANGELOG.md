@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-24
+
+### Added
+- Sessions API to get all active sessions of a user(`/session`)
+- Revoke sessions API to revoke a user's active session(`/sessions/revoke`)
+- Added `Session` tag to the docs
+- Added docs for new APIs
+
+### Fixed
+- Improved the docs structures by adding validation error response to APIs that have validations
+- Improved the docs by refactoring some schemas and texts
+
+### Changed
+- Updated scalar(`@scalar/express-api-reference`) from version `0.10.19` to `0.10.21`
+
 ## [1.0.0] - 2026-09-22
 
 ### Added
