@@ -86,3 +86,95 @@ export const authUserSchema = registry.register(
       description: "The user data of the current signed in user",
     }),
 );
+
+export const authComponent = registry.registerComponent(
+  "securitySchemes",
+  "AuthRequired",
+  {
+    type: "apiKey",
+    scheme: "access_token",
+    in: "cookie",
+    name: "access_token",
+    description:
+      "`access_token` key must be in the cookies with value of a JWT token.",
+  },
+);
+
+export const jwtErrorSchema = registry.register(
+  "JWTErrorSchema",
+  z.object({
+    success: z.literal(false),
+    data: z.null(),
+    message: z.string(),
+    errorCode: z
+      .union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)])
+      .openapi({
+        description: `Specific authentication error codes:
+* \`0\`: TokenExpiredError (Token has expired, refresh required)
+* \`1\`: JsonWebTokenError (Invalid or malformed token)
+* \`2\`: NotBeforeError (Token not active yet)
+* \`3\`: ServiceError (Internal or unhandled auth error)`,
+        example: 0,
+      }),
+  }),
+);
+
+export const jwtErrorResponse = registry.registerComponent(
+  "responses",
+  "JWTErrorResponse",
+  {
+    description:
+      "Authentication error - missing, expired, or invalid bearer token",
+    content: {
+      "application/json": {
+        schema: { $ref: "#/components/schemas/JWTErrorSchema" },
+        examples: {
+          tokenExpired: {
+            summary: "Token expired (Code 0)",
+            description:
+              "Triggered when the access token has passed its expiration time.",
+            value: {
+              success: false,
+              data: null,
+              message: "The token has expired, refresh it.",
+              errorCode: 0,
+            },
+          },
+          tokenInvalid: {
+            summary: "Malformed/Invalid token (Code 1)",
+            description:
+              "Triggered when the token signature or structure is invalid.",
+            value: {
+              success: false,
+              data: null,
+              message: "jwt malformed",
+              errorCode: 1,
+            },
+          },
+          tokenNotActive: {
+            summary: "Token not active yet (Code 2)",
+            description:
+              "Triggered when the token contains a future nbf (not before) claim.",
+            value: {
+              success: false,
+              data: null,
+              message: "jwt not active",
+              errorCode: 2,
+            },
+          },
+          serviceError: {
+            summary: "Internal auth service error (Code 3)",
+            description:
+              "Triggered on unhandled authentication runtime exceptions.",
+            value: {
+              success: false,
+              data: null,
+              message: "Authentication failed",
+              errorCode: 3,
+            },
+          },
+        },
+      },
+    },
+  },
+);

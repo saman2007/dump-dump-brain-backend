@@ -7,7 +7,7 @@ import {
   signinUserSchema,
   signupUserSchema,
 } from "../../controllers/auth.js";
-import { authUserSchema, errorResponseSchema } from "../schemas.js";
+import { authUserSchema, jwtErrorResponse } from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 
 // Sign up doc
@@ -220,48 +220,6 @@ registry.registerPath({
         }),
       }),
     },
-    401: {
-      description: getApiMdFile("refresh-401-error"),
-      content: {
-        "application/json": {
-          schema: errorResponseSchema,
-          examples: {
-            0: {
-              value: {
-                success: false,
-                data: null,
-                message: "The refresh token has expired. Please signin again.",
-                errorCode: 0,
-              },
-            },
-            1: {
-              value: {
-                success: false,
-                data: null,
-                message: "Invalid signature",
-                errorCode: 1,
-              },
-            },
-            4: {
-              value: {
-                success: false,
-                data: null,
-                message: "The session has been expired. Please signin again.",
-                errorCode: 4,
-              },
-            },
-            5: {
-              value: {
-                success: false,
-                data: null,
-                message:
-                  "The session has been terminated because of malicious activities. Please signin again.",
-                errorCode: 5,
-              },
-            },
-          },
-        },
-      },
-    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },
 });
