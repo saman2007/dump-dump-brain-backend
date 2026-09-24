@@ -1,6 +1,10 @@
 import z from "zod";
 import { getApiMdFile, registry } from "../openapi.js";
-import { authComponent, jwtErrorResponse } from "../schemas.js";
+import {
+  authComponent,
+  jwtErrorResponse,
+  validationErrorResponseSchema,
+} from "../schemas.js";
 
 const renderSessionSchema = z.object({
   id: z.string(),
@@ -57,6 +61,11 @@ registry.registerPath({
             message: z.literal("Revoked the session successfully."),
           }),
         },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
       },
     },
     401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },

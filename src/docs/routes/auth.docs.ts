@@ -7,7 +7,11 @@ import {
   signinUserSchema,
   signupUserSchema,
 } from "../../controllers/auth.js";
-import { authUserSchema, jwtErrorResponse } from "../schemas.js";
+import {
+  authUserSchema,
+  jwtErrorResponse,
+  validationErrorResponseSchema,
+} from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 
 // Sign up doc
@@ -33,6 +37,11 @@ registry.registerPath({
             data: z.null(),
           }),
         },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
       },
     },
     409: {
@@ -124,6 +133,11 @@ registry.registerPath({
         },
       },
     },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
     401: {
       content: {
         "application/json": {
@@ -193,6 +207,11 @@ registry.registerPath({
         }),
       }),
     },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
   },
 });
 
@@ -219,6 +238,11 @@ registry.registerPath({
           description: "Contains new `refresh_token` and new `access_token`.",
         }),
       }),
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
     },
     401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },
