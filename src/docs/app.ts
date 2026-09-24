@@ -6,6 +6,7 @@ import "./schemas.js";
 import "./routes/auth.docs.js";
 import "./routes/otp.docs.js";
 import "./routes/account.docs.js";
+import "./routes/sessions.docs.js";
 
 const app = express();
 

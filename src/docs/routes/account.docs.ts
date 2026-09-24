@@ -2,6 +2,7 @@ import z from "zod";
 
 import { verifyAccountSchema } from "../../controllers/account.js";
 import { getApiMdFile, registry } from "../openapi.js";
+import { validationErrorResponseSchema } from "../schemas.js";
 
 registry.registerPath({
   method: "post",
@@ -22,6 +23,11 @@ registry.registerPath({
             message: z.literal("Account verified successfully."),
           }),
         },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
       },
     },
     404: {

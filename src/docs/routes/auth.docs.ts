@@ -7,7 +7,11 @@ import {
   signinUserSchema,
   signupUserSchema,
 } from "../../controllers/auth.js";
-import { authUserSchema, errorResponseSchema } from "../schemas.js";
+import {
+  authUserSchema,
+  jwtErrorResponse,
+  validationErrorResponseSchema,
+} from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 
 // Sign up doc
@@ -33,6 +37,11 @@ registry.registerPath({
             data: z.null(),
           }),
         },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
       },
     },
     409: {
@@ -124,6 +133,11 @@ registry.registerPath({
         },
       },
     },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
     401: {
       content: {
         "application/json": {
@@ -193,6 +207,11 @@ registry.registerPath({
         }),
       }),
     },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
   },
 });
 
@@ -220,48 +239,11 @@ registry.registerPath({
         }),
       }),
     },
-    401: {
-      description: getApiMdFile("refresh-401-error"),
+    400: {
       content: {
-        "application/json": {
-          schema: errorResponseSchema,
-          examples: {
-            0: {
-              value: {
-                success: false,
-                data: null,
-                message: "The refresh token has expired. Please signin again.",
-                errorCode: 0,
-              },
-            },
-            1: {
-              value: {
-                success: false,
-                data: null,
-                message: "Invalid signature",
-                errorCode: 1,
-              },
-            },
-            4: {
-              value: {
-                success: false,
-                data: null,
-                message: "The session has been expired. Please signin again.",
-                errorCode: 4,
-              },
-            },
-            5: {
-              value: {
-                success: false,
-                data: null,
-                message:
-                  "The session has been terminated because of malicious activities. Please signin again.",
-                errorCode: 5,
-              },
-            },
-          },
-        },
+        "application/json": { schema: validationErrorResponseSchema },
       },
     },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },
 });

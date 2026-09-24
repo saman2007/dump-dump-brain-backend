@@ -2,7 +2,11 @@ import z from "zod";
 
 import { attemptOtpSchema, generateOtpSchema } from "../../controllers/otp.js";
 import { getApiMdFile, registry } from "../openapi.js";
-import { errorResponseSchema, otpTypesSchema } from "../schemas.js";
+import {
+  errorResponseSchema,
+  otpTypesSchema,
+  validationErrorResponseSchema,
+} from "../schemas.js";
 
 // For /otp/generate API
 registry.registerPath({
@@ -34,17 +38,22 @@ registry.registerPath({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            success: z.literal(false),
-            data: z.number().openapi({
-              example: 1234,
-              description: "The remaining cooldown time in ms.",
-            }),
-            message: z.literal(
-              "Can't generate a new OTP during the generate cooldown period.",
-            ),
-            errorCode: z.literal(0),
-          }),
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.number().openapi({
+                  example: 1234,
+                  description: "The remaining cooldown time in ms.",
+                }),
+                message: z.literal(
+                  "Can't generate a new OTP during the generate cooldown period.",
+                ),
+                errorCode: z.literal(0),
+              })
+              .openapi({ title: "CooldownError" }),
+            validationErrorResponseSchema,
+          ]),
         },
       },
     },
@@ -107,20 +116,21 @@ registry.registerPath({
       },
     },
     400: {
-      description: getApiMdFile("attempt-otp-400"),
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: z.union([errorResponseSchema, validationErrorResponseSchema]),
           examples: {
-            0: {
+            NoOTPRequested: {
               value: {
                 success: false,
                 data: null,
                 message: "No OTP is requested.",
                 errorCode: 0,
               },
+              description:
+                "Error code `0`: When the user attempts to verify a code for an OTP that does not exist for the specified user or does not match the specified type.",
             },
-            1: {
+            MaximumAttempt: {
               value: {
                 success: false,
                 data: null,
@@ -128,8 +138,10 @@ registry.registerPath({
                   "Maximum attempts exceeded. Please generate a new OTP.",
                 errorCode: 1,
               },
+              description:
+                "Error code `1`: When the user attempts to send a verification code 5 or more times and all attempts fail.",
             },
-            2: {
+            OTPExpired: {
               value: {
                 success: false,
                 data: null,
@@ -137,14 +149,18 @@ registry.registerPath({
                   "The generated OTP is expired. Please generate a new OTP.",
                 errorCode: 2,
               },
+              description:
+                "Error code `2`: When the user attempts to verify a code for an expired OTP.",
             },
-            4: {
+            WrongCode: {
               value: {
                 success: false,
                 data: false,
                 message: "The sent code is wrong.",
                 errorCode: 4,
               },
+              description:
+                "Error code `4`: When the user attempts to verify a code that doesn't match the generated OTP. In this case, the `data` property in response body is a `boolean` indicating whether the user has exceeded the maximum number of attempts or not.",
             },
           },
         },
