@@ -10,8 +10,6 @@ export const usersTable = p.snakeCase.table("users", {
   id: p.uuid().defaultRandom().primaryKey(),
   email: p.varchar({ length: 255 }).unique().notNull(),
   username: p.varchar({ length: 100 }).unique().notNull(),
-  displayName: p.varchar({ length: 100 }),
-  avatar: p.text(),
   password: p.text().notNull(),
   role: userRoleEnum().default("user").notNull(),
   isAccountVerified: p.boolean().default(false).notNull(),
@@ -21,8 +19,8 @@ export const usersTable = p.snakeCase.table("users", {
 
 export type FullUser = typeof usersTable.$inferSelect;
 export type AuthUser = Omit<
-FullUser,
-"createdAt" | "updatedAt" | "deletedAt" | "password"
+  FullUser,
+  "createdAt" | "updatedAt" | "deletedAt" | "password"
 >;
 export type NoTimestampUser = Omit<
   FullUser,
