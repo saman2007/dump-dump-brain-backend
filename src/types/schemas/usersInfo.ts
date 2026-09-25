@@ -18,3 +18,8 @@ export interface UserInfoTypeMap {
 }
 
 export type UserInfoTypes = keyof UserInfoTypeMap;
+
+export interface FollowInfo {
+  followersCount: number;
+  followingCount: number;
+}

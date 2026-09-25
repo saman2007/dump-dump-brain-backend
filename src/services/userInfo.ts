@@ -3,12 +3,14 @@ import * as d from "drizzle-orm";
 import db from "../db/db.js";
 import { usersInfoTable } from "../db/schemas/usersInfo.js";
 import type {
+  FollowInfo,
   FullUserInfo,
   UserInfoTypeMap,
   UserInfoTypes,
 } from "../types/schemas/usersInfo.js";
 import { getColumnsExcept } from "../utils/utils.js";
 import { usersTable } from "../db/schemas/users.js";
+import { followsTable } from "../db/schemas/follows.js";
 
 export class UserInfo {
   private static readonly FIELD_EXCLUDES: Record<
@@ -37,5 +39,20 @@ export class UserInfo {
       .limit(1)) as UserInfoTypeMap[T][];
 
     return userInfo;
+  }
+
+  public static async getFollowCount(
+    username: string,
+  ): Promise<FollowInfo | undefined> {
+    const [result] = await db
+      .select({
+        followersCount: d.sql<number>`cast((SELECT count(*) FROM follows WHERE ${followsTable.followingId} = ${usersTable.id}) as int)`,
+        followingCount: d.sql<number>`cast((SELECT count(*) FROM follows WHERE ${followsTable.followerId} = ${usersTable.id}) as int)`,
+      })
+      .from(usersTable)
+      .where(d.eq(usersTable.username, username))
+      .limit(1);
+
+    return result ?? undefined;
   }
 }
