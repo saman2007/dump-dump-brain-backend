@@ -1,8 +1,8 @@
 import z from "zod";
 
-import type { RenderSession } from "../db/schemas/sessions.js";
+import type { RenderSession } from "../types/schemas/sessions.js";
 import { Session } from "../services/sessions.js";
-import type { Controller } from "../types/types.js";
+import type { Controller } from "../types/api.js";
 
 export const userSessionsGetController: Controller<RenderSession[]> = async (
   req,

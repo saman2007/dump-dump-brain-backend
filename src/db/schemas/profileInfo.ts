@@ -1,11 +1,8 @@
 import * as p from "drizzle-orm/pg-core";
+
 import { usersTable } from "./users.js";
 import { timestamps } from "../columnHelpers.js";
-
-export interface UserFeeling {
-  emoji: string;
-  desc: string;
-}
+import type { UserFeeling } from "../../types/schemas/profileInfo.js";
 
 export const profileInfoTable = p.snakeCase.table("profileInfo", {
   id: p.uuid().primaryKey().defaultRandom(),
@@ -24,3 +21,6 @@ export const profileInfoTable = p.snakeCase.table("profileInfo", {
   socialMedias: p.jsonb().$type<Record<string, string>>(),
   ...timestamps,
 });
+
+export type ProfileInfoSelect = typeof profileInfoTable.$inferSelect;
+export type ProfileInfoInsert = typeof profileInfoTable.$inferInsert;

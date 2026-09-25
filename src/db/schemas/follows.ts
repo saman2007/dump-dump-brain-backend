@@ -31,3 +31,6 @@ export const followsTable = p.snakeCase.table(
     ),
   ],
 );
+
+export type FollowsSelect = typeof followsTable.$inferSelect;
+export type FollowsInsert = typeof followsTable.$inferInsert;

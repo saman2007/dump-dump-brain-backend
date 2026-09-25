@@ -15,7 +15,5 @@ export const sessionsTable = p.snakeCase.table("sessions", {
   createdAt: timestamps.createdAt,
 });
 
-export type RenderSession = Omit<
-  typeof sessionsTable.$inferSelect,
-  "refreshToken"
->;
+export type SessionsSelect = typeof sessionsTable.$inferSelect;
+export type SessionsInsert = typeof sessionsTable.$inferInsert;

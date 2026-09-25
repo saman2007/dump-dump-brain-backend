@@ -9,7 +9,6 @@ export const otpTypeEnum = p.pgEnum("otp_type", [
   "password_reset",
   "two_factor",
 ]);
-export type OTPType = InferEnum<typeof otpTypeEnum>;
 
 export const otpsTable = p.snakeCase.table("otps", {
   id: p.uuid().defaultRandom().primaryKey(),
@@ -23,3 +22,6 @@ export const otpsTable = p.snakeCase.table("otps", {
   attempts: p.smallint().default(0).notNull(),
   createdAt: timestamps.createdAt,
 });
+
+export type OTPSelect = typeof otpsTable.$inferSelect;
+export type OTPInsert = typeof otpsTable.$inferInsert;

@@ -1,4 +1,4 @@
-import type { Middleware } from "../types/types.js";
+import type { Middleware } from "../types/api.js";
 
 export const notFoundHandler: Middleware = (_, res) => {
   return res

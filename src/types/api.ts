@@ -1,5 +1,17 @@
 import type { Request, Response, NextFunction } from "express";
-import type { APIError, APISuccess } from "./interfaces.js";
+
+export interface APISuccess<T = null> {
+  success: true;
+  message: string | null;
+  data: T;
+}
+
+export interface APIError {
+  success: false;
+  message: string;
+  data: unknown;
+  errorCode?: number;
+}
 
 export type APIResponse<T> = APISuccess<T> | APIError;
 

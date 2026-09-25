@@ -3,15 +3,14 @@ import { hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import db from "../db/db.js";
+import { usersTable } from "../db/schemas/users.js";
+import type {
+  FullAuthUser,
+  UserRole,
+  AuthUserTypeMap,
+  AuthUserTypes,
+} from "../types/schemas/users.js";
 import {
-  usersTable,
-  type FullUser,
-  type UserRole,
-  type UserTypeMap,
-  type UserTypes,
-} from "../db/schemas/users.js";
-import {
-  generateRandomString,
   getColumnsExcept,
   getColumnsIncludes,
   hashSHA256,
@@ -20,14 +19,14 @@ import {
 import type { SignupUserType } from "../controllers/auth.js";
 import { sessionsTable } from "../db/schemas/sessions.js";
 
-export class User {
+export class AuthUser {
   private static readonly FIELD_EXCLUDES: Record<
-    UserTypes,
-    (keyof FullUser)[]
+    AuthUserTypes,
+    (keyof FullAuthUser)[]
   > = {
-    FULL_USER: [],
+    FULL_AUTH_USER: [],
     AUTH_USER: ["password", "updatedAt", "deletedAt"],
-    NO_TIMESTAMP_USER: ["createdAt", "updatedAt", "deletedAt"],
+    NO_TIMESTAMP_AUTH_USER: ["createdAt", "updatedAt", "deletedAt"],
   } as const;
 
   public static async isEmailTaken(email: string): Promise<boolean> {
@@ -61,38 +60,40 @@ export class User {
     return id;
   }
 
-  public static async getByUsername<T extends UserTypes = "AUTH_USER">(
+  public static async getByUsername<T extends AuthUserTypes = "AUTH_USER">(
     username: string,
     userType: T = "AUTH_USER" as T,
-  ): Promise<UserTypeMap[T] | null> {
+  ): Promise<AuthUserTypeMap[T] | null> {
     const [user] = (await db
-      .select(getColumnsExcept(usersTable, User.FIELD_EXCLUDES[userType]))
+      .select(getColumnsExcept(usersTable, AuthUser.FIELD_EXCLUDES[userType]))
       .from(usersTable)
       .where(d.eq(usersTable.username, username))
-      .limit(1)) as UserTypeMap[T][];
+      .limit(1)) as AuthUserTypeMap[T][];
 
     return user;
   }
 
-  public static async getById<T extends UserTypes = "AUTH_USER">(
+  public static async getById<T extends AuthUserTypes = "AUTH_USER">(
     id: string,
     userType: T = "AUTH_USER" as T,
-  ): Promise<UserTypeMap[T] | null> {
+  ): Promise<AuthUserTypeMap[T] | null> {
     const [user] = (await db
-      .select(getColumnsExcept(usersTable, User.FIELD_EXCLUDES[userType]))
+      .select(getColumnsExcept(usersTable, AuthUser.FIELD_EXCLUDES[userType]))
       .from(usersTable)
       .where(d.eq(usersTable.id, id))
-      .limit(1)) as UserTypeMap[T][];
+      .limit(1)) as AuthUserTypeMap[T][];
 
     return user;
   }
 
-  public static async getByUsernameOrEmail<T extends UserTypes = "AUTH_USER">(
+  public static async getByUsernameOrEmail<
+    T extends AuthUserTypes = "AUTH_USER",
+  >(
     usernameOrEmail: string,
     userType: T = "AUTH_USER" as T,
-  ): Promise<UserTypeMap[T] | null> {
+  ): Promise<AuthUserTypeMap[T] | null> {
     const [user] = (await db
-      .select(getColumnsExcept(usersTable, User.FIELD_EXCLUDES[userType]))
+      .select(getColumnsExcept(usersTable, AuthUser.FIELD_EXCLUDES[userType]))
       .from(usersTable)
       .where(
         d.or(
@@ -100,7 +101,7 @@ export class User {
           d.eq(usersTable.email, usernameOrEmail),
         ),
       )
-      .limit(1)) as UserTypeMap[T][];
+      .limit(1)) as AuthUserTypeMap[T][];
 
     return user;
   }
@@ -266,8 +267,8 @@ export class Auth {
 
     /**
      * When a valid refresh token is sent, but it doesn't match the refresh token stored in the session,
-     * it could mean that someone has access to the user's refresh token. 
-     * Because we rotate the refresh token after refreshing the access token.  
+     * it could mean that someone has access to the user's refresh token.
+     * Because we rotate the refresh token after refreshing the access token.
      */
     if (storedHashRefreshToken !== hashSHA256(refreshToken)) {
       await Auth.deleteSession(sessionId);
