@@ -53,12 +53,14 @@ export class AuthUser {
   public static async register(userData: SignupUserType): Promise<string> {
     userData.password = await hash(userData.password, 10);
 
+    const { displayName, ...authData } = userData;
+
     const [{ id }] = await db
       .insert(usersTable)
-      .values(userData)
+      .values(authData)
       .returning({ id: usersTable.id });
 
-    await db.insert(usersInfoTable).values({ userId: id });
+    await db.insert(usersInfoTable).values({ userId: id, displayName });
 
     return id;
   }

@@ -29,7 +29,12 @@ export const validateRequestData: (
 
   if (result.success) {
     if (dataType === "body") req.body = result.data;
-    else if (dataType === "query_param") req.query = result.data as any;
+    else if (dataType === "query_param") {
+      // req.query = result.data; doesn't work, because req.query is only a getter
+      for (const key in result.data) {
+        req.query[key] = result.data[key] as any;
+      }
+    }
 
     return next();
   }
