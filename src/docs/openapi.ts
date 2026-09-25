@@ -39,6 +39,7 @@ export function generateOpenAPIDocument() {
       { name: "OTP", description: getApiMdFile("otp") },
       { name: "Account", description: getApiMdFile("account") },
       { name: "Sessions", description: getApiMdFile("sessions") },
+      { name: "User Info", description: getApiMdFile("user-info") },
     ],
     servers: [
       {
