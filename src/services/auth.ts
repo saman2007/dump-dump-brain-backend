@@ -18,6 +18,7 @@ import {
 } from "../utils/utils.js";
 import type { SignupUserType } from "../controllers/auth.js";
 import { sessionsTable } from "../db/schemas/sessions.js";
+import { usersInfoTable } from "../db/schemas/usersInfo.js";
 
 export class AuthUser {
   private static readonly FIELD_EXCLUDES: Record<
@@ -57,13 +58,15 @@ export class AuthUser {
       .values(userData)
       .returning({ id: usersTable.id });
 
+    await db.insert(usersInfoTable).values({ userId: id });
+
     return id;
   }
 
   public static async getByUsername<T extends AuthUserTypes = "AUTH_USER">(
     username: string,
     userType: T = "AUTH_USER" as T,
-  ): Promise<AuthUserTypeMap[T] | null> {
+  ): Promise<AuthUserTypeMap[T] | undefined> {
     const [user] = (await db
       .select(getColumnsExcept(usersTable, AuthUser.FIELD_EXCLUDES[userType]))
       .from(usersTable)
@@ -76,7 +79,7 @@ export class AuthUser {
   public static async getById<T extends AuthUserTypes = "AUTH_USER">(
     id: string,
     userType: T = "AUTH_USER" as T,
-  ): Promise<AuthUserTypeMap[T] | null> {
+  ): Promise<AuthUserTypeMap[T] | undefined> {
     const [user] = (await db
       .select(getColumnsExcept(usersTable, AuthUser.FIELD_EXCLUDES[userType]))
       .from(usersTable)
@@ -91,7 +94,7 @@ export class AuthUser {
   >(
     usernameOrEmail: string,
     userType: T = "AUTH_USER" as T,
-  ): Promise<AuthUserTypeMap[T] | null> {
+  ): Promise<AuthUserTypeMap[T] | undefined> {
     const [user] = (await db
       .select(getColumnsExcept(usersTable, AuthUser.FIELD_EXCLUDES[userType]))
       .from(usersTable)
