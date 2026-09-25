@@ -12,8 +12,6 @@ export const profileInfoTable = p.snakeCase.table("profileInfo", {
     .references(() => usersTable.id, { onDelete: "cascade" })
     .notNull(),
   displayName: p.varchar({ length: 100 }),
-  followersCount: p.integer().default(0).notNull(),
-  followingCount: p.integer().default(0).notNull(),
   avatar: p.text(),
   feeling: p.jsonb().$type<UserFeeling>(),
   banner: p.text(),

@@ -76,8 +76,6 @@ export const authUserSchema = registry.register(
       id: z.uuidv4(),
       email: emailSchema.openapi({ example: "test@example.com" }),
       username: usernameSchema.openapi({ example: "test_user" }),
-      displayName: z.string().nullable().openapi({ example: "Test User" }),
-      avatar: z.string().nullable(),
       role: userRoleSchema.openapi({ example: "user" }),
       isAccountVerified: z.boolean().openapi({ example: true }),
       isTwoFactorEnabled: z.boolean().openapi({ example: false }),
