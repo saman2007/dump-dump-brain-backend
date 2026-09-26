@@ -7,7 +7,7 @@ import "./routes/auth.docs.js";
 import "./routes/otp.docs.js";
 import "./routes/account.docs.js";
 import "./routes/sessions.docs.js";
-import "./routes/userInfo.docs.js";
+import "./routes/users.docs.js";
 
 const app = express();
 

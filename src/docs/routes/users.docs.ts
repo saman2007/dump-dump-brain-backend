@@ -6,14 +6,14 @@ import {
   socialMediasSchema,
   userInfoGetSchema,
   userInfoPatchSchema,
-} from "../../controllers/userInfo.js";
+} from "../../controllers/user.js";
 
 // GET /user-info
 registry.registerPath({
   method: "get",
   path: "/user-info",
   summary: "GET /user-info",
-  tags: ["User Info"],
+  tags: ["Users"],
   description: getApiMdFile("get-user-info"),
   request: { query: userInfoGetSchema },
   responses: {
@@ -66,7 +66,7 @@ registry.registerPath({
   method: "patch",
   path: "/user-info",
   summary: "PATCH /user-info",
-  tags: ["User Info"],
+  tags: ["Users"],
   security: [{ [authComponent.name]: [] }],
   description: getApiMdFile("patch-user-info"),
   request: {

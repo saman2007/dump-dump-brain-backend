@@ -5,21 +5,21 @@ import {
   userInfoGetSchema,
   userInfoPatchController,
   userInfoPatchSchema,
-} from "../controllers/userInfo.js";
+} from "../controllers/user.js";
 import { privateEndpoint } from "../middlewares/auth.js";
 
-const userInfoRouter = express.Router();
+const usersRouter = express.Router();
 
-userInfoRouter.get(
+usersRouter.get(
   "/user-info",
   validateRequestData(userInfoGetSchema, "query_param"),
   userInfoGetController,
 );
-userInfoRouter.patch(
+usersRouter.patch(
   "/user-info",
   validateRequestData(userInfoPatchSchema, "body"),
   privateEndpoint,
   userInfoPatchController,
 );
 
-export default userInfoRouter;
+export default usersRouter;

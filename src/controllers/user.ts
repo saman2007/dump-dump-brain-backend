@@ -7,7 +7,7 @@ import type {
   PatchUserInfo,
 } from "../types/schemas/usersInfo.js";
 import { usernameSchema } from "../utils/validations.js";
-import { UserInfo } from "../services/userInfo.js";
+import { UserInfo } from "../services/user.js";
 
 export const feelingSchema = z.object({ emoji: z.string(), desc: z.string() });
 
@@ -74,3 +74,4 @@ export const userInfoPatchController: Controller<null> = async (req, res) => {
     message: "Updated user's info successfully.",
   });
 };
+
