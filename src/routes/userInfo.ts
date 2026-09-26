@@ -16,7 +16,7 @@ userInfoRouter.get(
   userInfoGetController,
 );
 userInfoRouter.patch(
-  "/userInfo",
+  "/user-info",
   validateRequestData(userInfoPatchSchema, "body"),
   privateEndpoint,
   userInfoPatchController,

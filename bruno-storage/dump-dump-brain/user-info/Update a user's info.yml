@@ -1,0 +1,16 @@
+info:
+  name: Update a user's info
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{DEV_URL}}/user-info"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
