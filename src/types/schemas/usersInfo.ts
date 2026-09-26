@@ -1,4 +1,7 @@
-import type { UsersInfoSelect } from "../../db/schemas/usersInfo.js";
+import type {
+  UsersInfoInsert,
+  UsersInfoSelect,
+} from "../../db/schemas/usersInfo.js";
 
 export interface UserFeeling {
   emoji: string;
@@ -23,3 +26,10 @@ export interface FollowInfo {
   followersCount: number;
   followingCount: number;
 }
+
+export type PatchUserInfo = Partial<
+  Omit<
+    UsersInfoInsert,
+    "userId" | "id" | "createdAt" | "updatedAt" | "deletedAt"
+  >
+>;

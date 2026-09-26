@@ -1,9 +1,17 @@
 import z from "zod";
 
 import type { Controller } from "../types/api.js";
-import type { FollowInfo, NormalUserInfo } from "../types/schemas/usersInfo.js";
+import type {
+  FollowInfo,
+  NormalUserInfo,
+  PatchUserInfo,
+} from "../types/schemas/usersInfo.js";
 import { usernameSchema } from "../utils/validations.js";
 import { UserInfo } from "../services/userInfo.js";
+
+export const feelingSchema = z.object({ emoji: z.string(), desc: z.string() });
+
+export const socialMediasSchema = z.record(z.string(), z.string());
 
 export const userInfoGetSchema = z.object({ username: usernameSchema });
 export type UserInfoGetType = z.infer<typeof userInfoGetSchema>;
@@ -27,4 +35,36 @@ export const userInfoGetController: Controller<
     data: { ...userInfo, ...followCounts },
     message: null,
   });
+};
+
+export const userInfoPatchSchema = z.object({
+  avatar: z.string().nullable().optional(),
+  banner: z.string().nullable().optional(),
+  bio: z.string().nullable().optional(),
+  displayName: z.string().nullable().optional(),
+  feeling: feelingSchema.optional(),
+  socialMedias: socialMediasSchema.optional(),
+}) satisfies z.ZodType<PatchUserInfo>;
+
+export type UserInfoPatchType = z.infer<typeof userInfoPatchSchema>;
+
+export const userInfoPatchController: Controller<null> = async (req, res) => {
+  const patchData = req.body as UserInfoPatchType;
+  const { userId } = req.accessTokenPayload!;
+
+  const isUpdated = await UserInfo.update(userId, patchData);
+
+  if (!isUpdated) {
+    return res
+      .status(404)
+      .json({ success: false, message: "User not found.", data: null });
+  }
+
+  return res
+    .status(200)
+    .json({
+      success: true,
+      data: null,
+      message: "Updated user's info successfully.",
+    });
 };

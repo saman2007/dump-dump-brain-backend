@@ -1,7 +1,11 @@
 import * as d from "drizzle-orm";
 
 import db from "../db/db.js";
-import { usersInfoTable } from "../db/schemas/usersInfo.js";
+import {
+  usersInfoTable,
+  type UsersInfoInsert,
+  type UsersInfoSelect,
+} from "../db/schemas/usersInfo.js";
 import type {
   FollowInfo,
   FullUserInfo,
@@ -54,5 +58,26 @@ export class UserInfo {
       .limit(1);
 
     return result ?? undefined;
+  }
+
+  public static async update(
+    userId: string,
+    patchData: Partial<
+      Omit<
+        UsersInfoInsert,
+        "userId" | "id" | "createdAt" | "updatedAt" | "deletedAt"
+      >
+    >,
+  ): Promise<boolean> {
+    if (Object.keys(patchData).length === 0) {
+      return true;
+    }
+
+    const res = await db
+      .update(usersInfoTable)
+      .set(patchData)
+      .where(d.eq(usersInfoTable.userId, userId));
+
+    return (res.rowCount ?? 0) > 0;
   }
 }
