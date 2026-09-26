@@ -50,8 +50,8 @@ export class UserInfo {
   ): Promise<FollowInfo | undefined> {
     const [result] = await db
       .select({
-        followersCount: d.sql<number>`cast((SELECT count(*) FROM follows WHERE ${followsTable.followingId} = ${usersTable.id}) as int)`,
-        followingCount: d.sql<number>`cast((SELECT count(*) FROM follows WHERE ${followsTable.followerId} = ${usersTable.id}) as int)`,
+        followersCount: d.sql<number>`cast((SELECT count(*) FROM follows WHERE follows.following_id = users.id) as int)`,
+        followingCount: d.sql<number>`cast((SELECT count(*) FROM follows WHERE follows.follower_id = users.id) as int)`,
       })
       .from(usersTable)
       .where(d.eq(usersTable.username, username))
