@@ -1,13 +1,18 @@
 import z from "zod";
 import { getApiMdFile, registry } from "../openapi.js";
-import { validationErrorResponseSchema } from "../schemas.js";
+import { authComponent, validationErrorResponseSchema } from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
-import { userInfoGetSchema } from "../../controllers/userInfo.js";
+import {
+  socialMediasSchema,
+  userInfoGetSchema,
+  userInfoPatchSchema,
+} from "../../controllers/userInfo.js";
 
+// GET /user-info
 registry.registerPath({
   method: "get",
   path: "/user-info",
-  summary: "/user-info",
+  summary: "GET /user-info",
   tags: ["User Info"],
   description: getApiMdFile("get-user-info"),
   request: { query: userInfoGetSchema },
@@ -28,15 +33,7 @@ registry.registerPath({
                 .nullable(),
               banner: z.string().nullable(),
               bio: z.string().nullable(),
-              socialMedias: z.array(z.record(z.string(), z.string())).openapi({
-                description:
-                  "Map of social media platform names to their profile URLs or usernames",
-                example: {
-                  github: "https://github.com/username",
-                  twitter: "https://x.com/username",
-                  linkedin: "https://linkedin.com/in/username",
-                },
-              }),
+              socialMedias: z.array(socialMediasSchema),
               followersCount: z.number(),
               followingCount: z.number(),
             }),
@@ -45,7 +42,51 @@ registry.registerPath({
         },
       },
     },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("User not found."),
+          }),
+        },
+      },
+    },
+  },
+});
 
+// PATCH /user-info
+registry.registerPath({
+  method: "patch",
+  path: "/user-info",
+  summary: "PATCH /user-info",
+  tags: ["User Info"],
+  security: [{ [authComponent.name]: [] }],
+  description: getApiMdFile("patch-user-info"),
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: userInfoPatchSchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("Updated user's info successfully."),
+          }),
+        },
+      },
+    },
     400: {
       content: {
         "application/json": { schema: validationErrorResponseSchema },
