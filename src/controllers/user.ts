@@ -7,7 +7,7 @@ import type {
   PatchUserInfo,
 } from "../types/schemas/usersInfo.js";
 import { usernameSchema } from "../utils/validations.js";
-import { UserInfo } from "../services/users.js";
+import { User, UserInfo } from "../services/user.js";
 
 export const feelingSchema = z.object({ emoji: z.string(), desc: z.string() });
 
@@ -75,3 +75,30 @@ export const userInfoPatchController: Controller<null> = async (req, res) => {
   });
 };
 
+export const followSchema = z.object({ followingId: z.string().min(1) });
+export type FollowSchemaType = z.infer<typeof followSchema>;
+
+export const followUserPostController: Controller<null> = async (req, res) => {
+  const { userId } = req.accessTokenPayload!;
+  const { followingId } = req.body as FollowSchemaType;
+
+  await User.follow(userId, followingId);
+
+  return res
+    .status(200)
+    .json({ success: true, data: null, message: "Successfully followed." });
+};
+
+export const unfollowUserPostController: Controller<null> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.accessTokenPayload!;
+  const { followingId } = req.body as FollowSchemaType;
+
+  await User.unfollow(userId, followingId);
+
+  return res
+    .status(200)
+    .json({ success: true, data: null, message: "Successfully unfollowed." });
+};

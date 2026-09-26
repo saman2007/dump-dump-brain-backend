@@ -1,19 +1,23 @@
 import z from "zod";
 import { getApiMdFile, registry } from "../openapi.js";
-import { authComponent, validationErrorResponseSchema } from "../schemas.js";
+import {
+  authComponent,
+  jwtErrorResponse,
+  validationErrorResponseSchema,
+} from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 import {
   socialMediasSchema,
   userInfoGetSchema,
   userInfoPatchSchema,
-} from "../../controllers/users.js";
+} from "../../controllers/user.js";
 
 // GET /user-info
 registry.registerPath({
   method: "get",
-  path: "/user-info",
-  summary: "GET /user-info",
-  tags: ["Users"],
+  path: "/user/info",
+  summary: "GET /user/info",
+  tags: ["User"],
   description: getApiMdFile("get-user-info"),
   request: { query: userInfoGetSchema },
   responses: {
@@ -64,9 +68,9 @@ registry.registerPath({
 // PATCH /user-info
 registry.registerPath({
   method: "patch",
-  path: "/user-info",
-  summary: "PATCH /user-info",
-  tags: ["Users"],
+  path: "/user/info",
+  summary: "PATCH /user/info",
+  tags: ["User"],
   security: [{ [authComponent.name]: [] }],
   description: getApiMdFile("patch-user-info"),
   request: {
@@ -92,6 +96,7 @@ registry.registerPath({
         "application/json": { schema: validationErrorResponseSchema },
       },
     },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
     404: {
       content: {
         "application/json": {

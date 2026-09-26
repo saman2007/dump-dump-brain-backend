@@ -9,7 +9,7 @@ import { notFoundHandler } from "./middlewares/notFound.js";
 import otpRouter from "./routes/otp.js";
 import accountRouter from "./routes/account.js";
 import sessionsRouter from "./routes/sessions.js";
-import usersRouter from "./routes/users.js";
+import userRouter from "./routes/user.js";
 
 const app = express();
 
@@ -25,7 +25,7 @@ app.use(authRouter);
 app.use(otpRouter);
 app.use(accountRouter);
 app.use(sessionsRouter);
-app.use(usersRouter);
+app.use(userRouter);
 
 app.use(notFoundHandler);
 

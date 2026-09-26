@@ -82,3 +82,19 @@ export class UserInfo {
   }
 }
 
+export class User {
+  public static follow(followerId: string, followingId: string) {
+    return db.insert(followsTable).values({ followerId, followingId });
+  }
+
+  public static unfollow(followerId: string, followingId: string) {
+    return db
+      .delete(followsTable)
+      .where(
+        d.and(
+          d.eq(followsTable.followerId, followerId),
+          d.eq(followsTable.followingId, followingId),
+        ),
+      );
+  }
+}

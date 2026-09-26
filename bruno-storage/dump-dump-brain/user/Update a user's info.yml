@@ -5,7 +5,7 @@ info:
 
 http:
   method: PATCH
-  url: "{{DEV_URL}}/user-info"
+  url: "{{DEV_URL}}/user/info"
   auth: inherit
 
 settings:
