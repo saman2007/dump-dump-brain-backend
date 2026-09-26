@@ -7,7 +7,7 @@ import type {
   PatchUserInfo,
 } from "../types/schemas/usersInfo.js";
 import { usernameSchema } from "../utils/validations.js";
-import { UserInfo } from "../services/user.js";
+import { UserInfo } from "../services/users.js";
 
 export const feelingSchema = z.object({ emoji: z.string(), desc: z.string() });
 

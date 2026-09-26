@@ -5,7 +5,7 @@ import {
   userInfoGetSchema,
   userInfoPatchController,
   userInfoPatchSchema,
-} from "../controllers/user.js";
+} from "../controllers/users.js";
 import { privateEndpoint } from "../middlewares/auth.js";
 
 const usersRouter = express.Router();

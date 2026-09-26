@@ -6,7 +6,7 @@ import {
   socialMediasSchema,
   userInfoGetSchema,
   userInfoPatchSchema,
-} from "../../controllers/user.js";
+} from "../../controllers/users.js";
 
 // GET /user-info
 registry.registerPath({

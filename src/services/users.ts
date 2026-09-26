@@ -81,3 +81,4 @@ export class UserInfo {
     return (res.rowCount ?? 0) > 0;
   }
 }
+
