@@ -4,10 +4,10 @@ import db from "../db/db.js";
 import {
   usersInfoTable,
   type UsersInfoInsert,
-  type UsersInfoSelect,
 } from "../db/schemas/usersInfo.js";
 import type {
   FollowInfo,
+  FollowItem,
   FullUserInfo,
   UserInfoTypeMap,
   UserInfoTypes,
@@ -96,5 +96,43 @@ export class User {
           d.eq(followsTable.followingId, followingId),
         ),
       );
+  }
+
+  public static async getFollowersList(userId: string): Promise<FollowItem[] | undefined> {
+    const followingUsers = await db
+      .select({
+        id: usersTable.id,
+        username: usersTable.username,
+        displayName: usersInfoTable.displayName,
+        avatar: usersInfoTable.avatar,
+      })
+      .from(followsTable)
+      .where(d.eq(followsTable.followingId, userId))
+      .innerJoin(usersTable, d.eq(followsTable.followerId, usersTable.id))
+      .innerJoin(
+        usersInfoTable,
+        d.eq(followsTable.followerId, usersInfoTable.userId),
+      );
+
+    return followingUsers;
+  }
+
+  public static async getFollowingList(userId: string): Promise<FollowItem[]> {
+    const followingUsers = await db
+      .select({
+        id: usersTable.id,
+        username: usersTable.username,
+        displayName: usersInfoTable.displayName,
+        avatar: usersInfoTable.avatar,
+      })
+      .from(followsTable)
+      .where(d.eq(followsTable.followerId, userId))
+      .innerJoin(usersTable, d.eq(followsTable.followingId, usersTable.id))
+      .innerJoin(
+        usersInfoTable,
+        d.eq(followsTable.followingId, usersInfoTable.userId),
+      );
+
+    return followingUsers;
   }
 }

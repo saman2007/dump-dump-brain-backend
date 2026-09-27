@@ -2,6 +2,7 @@ import type {
   UsersInfoInsert,
   UsersInfoSelect,
 } from "../../db/schemas/usersInfo.js";
+import type { FullAuthUser } from "./users.js";
 
 export interface UserFeeling {
   emoji: string;
@@ -33,3 +34,6 @@ export type PatchUserInfo = Partial<
     "userId" | "id" | "createdAt" | "updatedAt" | "deletedAt"
   >
 >;
+
+export type FollowItem = Pick<FullAuthUser, "id" | "username"> &
+  Pick<FullUserInfo, "avatar" | "displayName">;

@@ -3,6 +3,7 @@ import z from "zod";
 import type { Controller } from "../types/api.js";
 import type {
   FollowInfo,
+  FollowItem,
   NormalUserInfo,
   PatchUserInfo,
 } from "../types/schemas/usersInfo.js";
@@ -101,4 +102,41 @@ export const unfollowUserPostController: Controller<null> = async (
   return res
     .status(200)
     .json({ success: true, data: null, message: "Successfully unfollowed." });
+};
+
+export const followListSchema = z.object({ userId: z.string().min(1) });
+export type FollowerListSchemaType = z.infer<typeof followListSchema>;
+
+export const followersListGetController: Controller<FollowItem[]> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.query as FollowerListSchemaType;
+
+  const list = await User.getFollowersList(userId);
+
+  if (!list) {
+    return res
+      .status(404)
+      .json({ success: false, data: null, message: "User not found." });
+  }
+
+  return res.status(200).json({ success: true, data: list, message: null });
+};
+
+export const followingListGetController: Controller<FollowItem[]> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.query as FollowerListSchemaType;
+
+  const list = await User.getFollowingList(userId);
+
+  if (!list) {
+    return res
+      .status(404)
+      .json({ success: false, data: null, message: "User not found." });
+  }
+
+  return res.status(200).json({ success: true, data: list, message: null });
 };
