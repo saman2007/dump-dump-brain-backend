@@ -1,0 +1,1 @@
+An API endpoint that allows the user associated with the provided access token to follow the user associated with the specified user ID.

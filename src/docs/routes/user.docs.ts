@@ -7,12 +7,13 @@ import {
 } from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 import {
+  followSchema,
   socialMediasSchema,
   userInfoGetSchema,
   userInfoPatchSchema,
 } from "../../controllers/user.js";
 
-// GET /user-info
+// GET /user/info
 registry.registerPath({
   method: "get",
   path: "/user/info",
@@ -65,7 +66,7 @@ registry.registerPath({
   },
 });
 
-// PATCH /user-info
+// PATCH /user/info
 registry.registerPath({
   method: "patch",
   path: "/user/info",
@@ -108,5 +109,75 @@ registry.registerPath({
         },
       },
     },
+  },
+});
+
+// /user/follow
+registry.registerPath({
+  method: "post",
+  path: "/user/follow",
+  summary: "/user/follow",
+  tags: ["User"],
+  description: getApiMdFile("follow-user"),
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    body: {
+      content: { "application/json": { schema: followSchema } },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("Successfully followed."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
+  },
+});
+
+// /user/unfollow
+registry.registerPath({
+  method: "post",
+  path: "/user/unfollow",
+  summary: "/user/unfollow",
+  tags: ["User"],
+  description: getApiMdFile("unfollow-user"),
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    body: {
+      content: { "application/json": { schema: followSchema } },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("Successfully unfollowed."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },
 });
