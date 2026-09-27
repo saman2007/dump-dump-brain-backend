@@ -7,13 +7,20 @@ import {
 } from "../schemas.js";
 import { usernameSchema } from "../../utils/validations.js";
 import {
+  followListSchema,
   followSchema,
   socialMediasSchema,
   userInfoGetSchema,
   userInfoPatchSchema,
 } from "../../controllers/user.js";
 
-// GET /user/info
+const followItemSchema = z.object({
+  id: z.string().uuid(),
+  username: usernameSchema,
+  displayName: z.string().nullable(),
+  avatar: z.string().nullable(),
+});
+
 registry.registerPath({
   method: "get",
   path: "/user/info",
@@ -66,7 +73,6 @@ registry.registerPath({
   },
 });
 
-// PATCH /user/info
 registry.registerPath({
   method: "patch",
   path: "/user/info",
@@ -112,7 +118,6 @@ registry.registerPath({
   },
 });
 
-// /user/follow
 registry.registerPath({
   method: "post",
   path: "/user/follow",
@@ -147,7 +152,6 @@ registry.registerPath({
   },
 });
 
-// /user/unfollow
 registry.registerPath({
   method: "post",
   path: "/user/unfollow",
@@ -179,5 +183,81 @@ registry.registerPath({
       },
     },
     401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/user/followers-list",
+  summary: "/user/followers-list",
+  tags: ["User"],
+  description: getApiMdFile("followers-list"),
+  request: { query: followListSchema },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.array(followItemSchema),
+            message: z.null(),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("User not found."),
+          }),
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/user/following-list",
+  summary: "/user/following-list",
+  tags: ["User"],
+  description: getApiMdFile("following-list"),
+  request: { query: followListSchema },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.array(followItemSchema),
+            message: z.null(),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": { schema: validationErrorResponseSchema },
+      },
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("User not found."),
+          }),
+        },
+      },
+    },
   },
 });
