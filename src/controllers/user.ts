@@ -104,39 +104,44 @@ export const unfollowUserPostController: Controller<null> = async (
     .json({ success: true, data: null, message: "Successfully unfollowed." });
 };
 
-export const followListSchema = z.object({ userId: z.string().min(1) });
+export const followListSchema = z.object({
+  userId: z.string().min(1),
+  oldCursor: z.iso.datetime().optional(),
+});
 export type FollowerListSchemaType = z.infer<typeof followListSchema>;
 
-export const followersListGetController: Controller<FollowItem[]> = async (
-  req,
-  res,
-) => {
-  const { userId } = req.query as FollowerListSchemaType;
+export const followersListGetController: Controller<{
+  items: FollowItem[];
+  nextCursor: Date | null;
+}> = async (req, res) => {
+  const { userId, oldCursor } = req.query as FollowerListSchemaType;
 
-  const list = await User.getFollowersList(userId);
+  const list = await User.getFollowersList(
+    userId,
+    oldCursor ? new Date(oldCursor) : null,
+  );
 
-  if (!list) {
-    return res
-      .status(404)
-      .json({ success: false, data: null, message: "User not found." });
-  }
-
-  return res.status(200).json({ success: true, data: list, message: null });
+  return res.status(200).json({
+    success: true,
+    data: { items: list, nextCursor: list.at(-1)?.createdAt ?? null },
+    message: null,
+  });
 };
 
-export const followingListGetController: Controller<FollowItem[]> = async (
-  req,
-  res,
-) => {
-  const { userId } = req.query as FollowerListSchemaType;
+export const followingListGetController: Controller<{
+  items: FollowItem[];
+  nextCursor: Date | null;
+}> = async (req, res) => {
+  const { userId, oldCursor } = req.query as FollowerListSchemaType;
 
-  const list = await User.getFollowingList(userId);
+  const list = await User.getFollowingList(
+    userId,
+    oldCursor ? new Date(oldCursor) : null,
+  );
 
-  if (!list) {
-    return res
-      .status(404)
-      .json({ success: false, data: null, message: "User not found." });
-  }
-
-  return res.status(200).json({ success: true, data: list, message: null });
+  return res.status(200).json({
+    success: true,
+    data: { items: list, nextCursor: list.at(-1)?.createdAt ?? null },
+    message: null,
+  });
 };

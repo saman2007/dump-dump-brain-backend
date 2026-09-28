@@ -98,40 +98,62 @@ export class User {
       );
   }
 
-  public static async getFollowersList(userId: string): Promise<FollowItem[] | undefined> {
+  public static async getFollowersList(
+    userId: string,
+    oldCursor: Date | null,
+  ): Promise<FollowItem[]> {
     const followingUsers = await db
       .select({
         id: usersTable.id,
         username: usersTable.username,
         displayName: usersInfoTable.displayName,
         avatar: usersInfoTable.avatar,
+        createdAt: followsTable.createdAt,
       })
       .from(followsTable)
-      .where(d.eq(followsTable.followingId, userId))
+      .where(
+        d.and(
+          d.eq(followsTable.followingId, userId),
+          oldCursor ? d.lt(followsTable.createdAt, oldCursor) : undefined,
+        ),
+      )
       .innerJoin(usersTable, d.eq(followsTable.followerId, usersTable.id))
       .innerJoin(
         usersInfoTable,
         d.eq(followsTable.followerId, usersInfoTable.userId),
-      );
+      )
+      .limit(10)
+      .orderBy(d.desc(followsTable.createdAt));
 
     return followingUsers;
   }
 
-  public static async getFollowingList(userId: string): Promise<FollowItem[]> {
+  public static async getFollowingList(
+    userId: string,
+    oldCursor: Date | null,
+  ): Promise<FollowItem[]> {
     const followingUsers = await db
       .select({
         id: usersTable.id,
         username: usersTable.username,
         displayName: usersInfoTable.displayName,
         avatar: usersInfoTable.avatar,
+        createdAt: followsTable.createdAt,
       })
       .from(followsTable)
-      .where(d.eq(followsTable.followerId, userId))
+      .where(
+        d.and(
+          d.eq(followsTable.followerId, userId),
+          oldCursor ? d.lt(followsTable.createdAt, oldCursor) : undefined,
+        ),
+      )
       .innerJoin(usersTable, d.eq(followsTable.followingId, usersTable.id))
       .innerJoin(
         usersInfoTable,
         d.eq(followsTable.followingId, usersInfoTable.userId),
-      );
+      )
+      .limit(10)
+      .orderBy(d.desc(followsTable.createdAt));
 
     return followingUsers;
   }

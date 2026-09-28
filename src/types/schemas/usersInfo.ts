@@ -36,4 +36,4 @@ export type PatchUserInfo = Partial<
 >;
 
 export type FollowItem = Pick<FullAuthUser, "id" | "username"> &
-  Pick<FullUserInfo, "avatar" | "displayName">;
+  Pick<FullUserInfo, "avatar" | "displayName"> & { createdAt: Date };
