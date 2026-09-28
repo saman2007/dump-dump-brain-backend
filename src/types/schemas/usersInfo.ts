@@ -35,5 +35,13 @@ export type PatchUserInfo = Partial<
   >
 >;
 
+export interface FollowCursor {
+  createdAt: Date;
+  id: string;
+}
+
 export type FollowItem = Pick<FullAuthUser, "id" | "username"> &
-  Pick<FullUserInfo, "avatar" | "displayName"> & { createdAt: Date };
+  Pick<FullUserInfo, "avatar" | "displayName"> & {
+    createdAt: Date;
+    followId: string;
+  };

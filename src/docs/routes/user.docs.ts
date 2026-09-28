@@ -20,6 +20,12 @@ const followItemSchema = z.object({
   displayName: z.string().nullable(),
   avatar: z.string().nullable(),
   createdAt: z.date(),
+  followId: z.string().uuid(),
+});
+
+const followCursorSchema = z.object({
+  createdAt: z.date(),
+  id: z.string().uuid(),
 });
 
 registry.registerPath({
@@ -203,7 +209,7 @@ registry.registerPath({
             success: z.literal(true),
             data: z.object({
               items: z.array(followItemSchema),
-              nextCursor: z.date().nullable(),
+              nextCursor: followCursorSchema.nullable(),
             }),
             message: z.null(),
           }),
@@ -235,7 +241,7 @@ registry.registerPath({
             success: z.literal(true),
             data: z.object({
               items: z.array(followItemSchema),
-              nextCursor: z.date().nullable(),
+              nextCursor: followCursorSchema.nullable(),
             }),
             message: z.null(),
           }),

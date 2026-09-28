@@ -101,7 +101,21 @@ export class User {
   public static async getFollowersList(
     userId: string,
     cursor: Date | null,
+    cursorId: string | null = null,
   ): Promise<FollowItem[]> {
+    const cursorCondition =
+      cursor && cursorId
+        ? d.or(
+            d.lt(followsTable.createdAt, cursor),
+            d.and(
+              d.eq(followsTable.createdAt, cursor),
+              d.lt(followsTable.id, cursorId),
+            ),
+          )
+        : cursor
+          ? d.lt(followsTable.createdAt, cursor)
+          : undefined;
+
     const followingUsers = await db
       .select({
         id: usersTable.id,
@@ -109,12 +123,13 @@ export class User {
         displayName: usersInfoTable.displayName,
         avatar: usersInfoTable.avatar,
         createdAt: followsTable.createdAt,
+        followId: followsTable.id,
       })
       .from(followsTable)
       .where(
         d.and(
           d.eq(followsTable.followingId, userId),
-          cursor ? d.lt(followsTable.createdAt, cursor) : undefined,
+          cursorCondition,
         ),
       )
       .innerJoin(usersTable, d.eq(followsTable.followerId, usersTable.id))
@@ -123,7 +138,7 @@ export class User {
         d.eq(followsTable.followerId, usersInfoTable.userId),
       )
       .limit(10)
-      .orderBy(d.desc(followsTable.createdAt));
+      .orderBy(d.desc(followsTable.createdAt), d.desc(followsTable.id));
 
     return followingUsers;
   }
@@ -131,7 +146,21 @@ export class User {
   public static async getFollowingList(
     userId: string,
     cursor: Date | null,
+    cursorId: string | null = null,
   ): Promise<FollowItem[]> {
+    const cursorCondition =
+      cursor && cursorId
+        ? d.or(
+            d.lt(followsTable.createdAt, cursor),
+            d.and(
+              d.eq(followsTable.createdAt, cursor),
+              d.lt(followsTable.id, cursorId),
+            ),
+          )
+        : cursor
+          ? d.lt(followsTable.createdAt, cursor)
+          : undefined;
+
     const followingUsers = await db
       .select({
         id: usersTable.id,
@@ -139,12 +168,13 @@ export class User {
         displayName: usersInfoTable.displayName,
         avatar: usersInfoTable.avatar,
         createdAt: followsTable.createdAt,
+        followId: followsTable.id,
       })
       .from(followsTable)
       .where(
         d.and(
           d.eq(followsTable.followerId, userId),
-          cursor ? d.lt(followsTable.createdAt, cursor) : undefined,
+          cursorCondition,
         ),
       )
       .innerJoin(usersTable, d.eq(followsTable.followingId, usersTable.id))
@@ -153,7 +183,7 @@ export class User {
         d.eq(followsTable.followingId, usersInfoTable.userId),
       )
       .limit(10)
-      .orderBy(d.desc(followsTable.createdAt));
+      .orderBy(d.desc(followsTable.createdAt), d.desc(followsTable.id));
 
     return followingUsers;
   }

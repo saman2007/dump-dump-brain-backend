@@ -107,41 +107,58 @@ export const unfollowUserPostController: Controller<null> = async (
 export const followListSchema = z.object({
   userId: z.string().min(1),
   cursor: z.iso.datetime().optional(),
+  cursorId: z.string().uuid().optional(),
 });
 export type FollowerListSchemaType = z.infer<typeof followListSchema>;
 
 export const followersListGetController: Controller<{
   items: FollowItem[];
-  nextCursor: Date | null;
+  nextCursor: { createdAt: Date; id: string } | null;
 }> = async (req, res) => {
-  const { userId, cursor } = req.query as FollowerListSchemaType;
+  const { userId, cursor, cursorId } = req.query as FollowerListSchemaType;
 
   const list = await User.getFollowersList(
     userId,
     cursor ? new Date(cursor) : null,
+    cursorId ?? null,
   );
+
+  const lastItem = list.at(-1);
 
   return res.status(200).json({
     success: true,
-    data: { items: list, nextCursor: list.at(-1)?.createdAt ?? null },
+    data: {
+      items: list,
+      nextCursor: lastItem
+        ? { createdAt: lastItem.createdAt, id: lastItem.followId }
+        : null,
+    },
     message: null,
   });
 };
 
 export const followingListGetController: Controller<{
   items: FollowItem[];
-  nextCursor: Date | null;
+  nextCursor: { createdAt: Date; id: string } | null;
 }> = async (req, res) => {
-  const { userId, cursor } = req.query as FollowerListSchemaType;
+  const { userId, cursor, cursorId } = req.query as FollowerListSchemaType;
 
   const list = await User.getFollowingList(
     userId,
     cursor ? new Date(cursor) : null,
+    cursorId ?? null,
   );
+
+  const lastItem = list.at(-1);
 
   return res.status(200).json({
     success: true,
-    data: { items: list, nextCursor: list.at(-1)?.createdAt ?? null },
+    data: {
+      items: list,
+      nextCursor: lastItem
+        ? { createdAt: lastItem.createdAt, id: lastItem.followId }
+        : null,
+    },
     message: null,
   });
 };
