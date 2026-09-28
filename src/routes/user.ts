@@ -42,11 +42,13 @@ userRouter.post(
 userRouter.get(
   "/user/followers-list",
   validateRequestData(followListSchema, "query_param"),
+  privateEndpoint,
   followersListGetController,
 );
 userRouter.get(
   "/user/following-list",
   validateRequestData(followListSchema, "query_param"),
+  privateEndpoint,
   followingListGetController,
 );
 
