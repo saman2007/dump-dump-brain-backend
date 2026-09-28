@@ -19,6 +19,7 @@ const followItemSchema = z.object({
   username: usernameSchema,
   displayName: z.string().nullable(),
   avatar: z.string().nullable(),
+  createdAt: z.date(),
 });
 
 registry.registerPath({
@@ -192,6 +193,7 @@ registry.registerPath({
   summary: "/user/followers-list",
   tags: ["User"],
   description: getApiMdFile("followers-list"),
+  security: [{ [authComponent.name]: [] }],
   request: { query: followListSchema },
   responses: {
     200: {
@@ -199,7 +201,10 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             success: z.literal(true),
-            data: z.array(followItemSchema),
+            data: z.object({
+              items: z.array(followItemSchema),
+              nextCursor: z.date().nullable(),
+            }),
             message: z.null(),
           }),
         },
@@ -210,17 +215,7 @@ registry.registerPath({
         "application/json": { schema: validationErrorResponseSchema },
       },
     },
-    404: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            success: z.literal(false),
-            data: z.null(),
-            message: z.literal("User not found."),
-          }),
-        },
-      },
-    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },
 });
 
@@ -230,6 +225,7 @@ registry.registerPath({
   summary: "/user/following-list",
   tags: ["User"],
   description: getApiMdFile("following-list"),
+  security: [{ [authComponent.name]: [] }],
   request: { query: followListSchema },
   responses: {
     200: {
@@ -237,7 +233,10 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             success: z.literal(true),
-            data: z.array(followItemSchema),
+            data: z.object({
+              items: z.array(followItemSchema),
+              nextCursor: z.date().nullable(),
+            }),
             message: z.null(),
           }),
         },
@@ -248,16 +247,6 @@ registry.registerPath({
         "application/json": { schema: validationErrorResponseSchema },
       },
     },
-    404: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            success: z.literal(false),
-            data: z.null(),
-            message: z.literal("User not found."),
-          }),
-        },
-      },
-    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },
 });

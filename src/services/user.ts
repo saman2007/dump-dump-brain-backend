@@ -100,7 +100,7 @@ export class User {
 
   public static async getFollowersList(
     userId: string,
-    oldCursor: Date | null,
+    cursor: Date | null,
   ): Promise<FollowItem[]> {
     const followingUsers = await db
       .select({
@@ -114,7 +114,7 @@ export class User {
       .where(
         d.and(
           d.eq(followsTable.followingId, userId),
-          oldCursor ? d.lt(followsTable.createdAt, oldCursor) : undefined,
+          cursor ? d.lt(followsTable.createdAt, cursor) : undefined,
         ),
       )
       .innerJoin(usersTable, d.eq(followsTable.followerId, usersTable.id))
@@ -130,7 +130,7 @@ export class User {
 
   public static async getFollowingList(
     userId: string,
-    oldCursor: Date | null,
+    cursor: Date | null,
   ): Promise<FollowItem[]> {
     const followingUsers = await db
       .select({
@@ -144,7 +144,7 @@ export class User {
       .where(
         d.and(
           d.eq(followsTable.followerId, userId),
-          oldCursor ? d.lt(followsTable.createdAt, oldCursor) : undefined,
+          cursor ? d.lt(followsTable.createdAt, cursor) : undefined,
         ),
       )
       .innerJoin(usersTable, d.eq(followsTable.followingId, usersTable.id))

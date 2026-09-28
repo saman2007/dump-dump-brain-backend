@@ -106,7 +106,7 @@ export const unfollowUserPostController: Controller<null> = async (
 
 export const followListSchema = z.object({
   userId: z.string().min(1),
-  oldCursor: z.iso.datetime().optional(),
+  cursor: z.iso.datetime().optional(),
 });
 export type FollowerListSchemaType = z.infer<typeof followListSchema>;
 
@@ -114,11 +114,11 @@ export const followersListGetController: Controller<{
   items: FollowItem[];
   nextCursor: Date | null;
 }> = async (req, res) => {
-  const { userId, oldCursor } = req.query as FollowerListSchemaType;
+  const { userId, cursor } = req.query as FollowerListSchemaType;
 
   const list = await User.getFollowersList(
     userId,
-    oldCursor ? new Date(oldCursor) : null,
+    cursor ? new Date(cursor) : null,
   );
 
   return res.status(200).json({
@@ -132,11 +132,11 @@ export const followingListGetController: Controller<{
   items: FollowItem[];
   nextCursor: Date | null;
 }> = async (req, res) => {
-  const { userId, oldCursor } = req.query as FollowerListSchemaType;
+  const { userId, cursor } = req.query as FollowerListSchemaType;
 
   const list = await User.getFollowingList(
     userId,
-    oldCursor ? new Date(oldCursor) : null,
+    cursor ? new Date(cursor) : null,
   );
 
   return res.status(200).json({
