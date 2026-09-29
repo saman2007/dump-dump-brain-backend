@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-29
+
+### Added
+- Get user profile info API (`GET /user/info`).
+- Update user profile API (`PATCH /user/info`).
+- Follow user API (`POST /user/follow`) to follow other users.
+- Unfollow user API (`POST /user/unfollow`) to unfollow users.
+- Followers list API (`GET /user/followers-list`) with cursor-based pagination.
+- Following list API (`GET /user/following-list`) with cursor-based pagination.
+- `users_info` table for profile metadata linked to `users`.
+- `follows` table for storing followers and following
+- Seed script (`src/db/seed.ts`) to populate database with test users and follow relationships.
+- `User` tag for users related APIs like user-info and follow APIs.
+- Documents for new APIs.
+- New APIs in bruno.
+
+### Fixed
+- Fixed query parameters handling in `validateRequestData` middleware.
+- Updated `@scalar/express-api-reference` from version `0.10.21` to `0.10.23`.
+
 ## [1.1.0] - 2026-09-24
 
 ### Added
