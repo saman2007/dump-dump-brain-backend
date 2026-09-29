@@ -1,6 +1,6 @@
 import z from "zod";
 
-import type { Controller } from "../types/types.js";
+import type { Controller } from "../types/api.js";
 import { Account } from "../services/account.js";
 
 export const verifyAccountSchema = z.object({ actionKey: z.string().min(1) });

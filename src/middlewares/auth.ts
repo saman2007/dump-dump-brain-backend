@@ -1,5 +1,5 @@
 import { Auth } from "../services/auth.js";
-import type { Middleware } from "../types/types.js";
+import type { Middleware } from "../types/api.js";
 import { ServiceError } from "../utils/utils.js";
 
 export const privateEndpoint: Middleware = (req, res, next) => {

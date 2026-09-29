@@ -1,6 +1,6 @@
 # Dump Dump Brain — Backend API
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![License](https://img.shields.io/badge/license-ISC-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7%2B-blue)

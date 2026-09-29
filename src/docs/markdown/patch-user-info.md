@@ -1,0 +1,1 @@
+An API to update user information. Send only the fields you want to change, and the profile associated with the access token will be updated.

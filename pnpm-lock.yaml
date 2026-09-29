@@ -5,8 +5,8 @@ dependencies:
     specifier: ^9.1.0
     version: 9.1.0(zod@4.6.4)
   '@scalar/express-api-reference':
-    specifier: ^0.10.21
-    version: 0.10.21
+    specifier: ^0.10.23
+    version: 0.10.23
   bcrypt:
     specifier: ^6.0.0
     version: 6.0.0
@@ -601,47 +601,48 @@ packages:
       jsbi: 4.3.2
     dev: true
 
-  /@scalar/client-side-rendering@0.4.3:
-    resolution: {integrity: sha512-a7Hs+YpaT3CEtJcx6pJS/1XMhV/cCGmheYrwuCd51LvrnJLluVqq7ID6F9xWqPnc7Y0E3vs6XZcz+h3exjUFdg==}
+  /@scalar/client-side-rendering@0.4.5:
+    resolution: {integrity: sha512-6dhBKaRecrrk2WyVLxrA8oyTiY+4zzhwf5OUjUyuyQXZHt/751QDf/TvW14p2osEaNELfY/gjtN8meX+UslFQw==}
     engines: {node: '>=22'}
     dependencies:
-      '@scalar/schemas': 0.11.0
-      '@scalar/types': 0.21.0
-      '@scalar/validation': 0.6.4
+      '@scalar/helpers': 0.15.0
+      '@scalar/schemas': 0.12.1
+      '@scalar/types': 0.22.1
+      '@scalar/validation': 0.6.5
     dev: false
 
-  /@scalar/express-api-reference@0.10.21:
-    resolution: {integrity: sha512-XweZPUd95oGAZsnCtaa7nPDjoDve1byQxvI8uyC8NclwyqndXIhXpNYmQsqpWoKFYYQV8DJaimuXg8BqiuVDbA==}
+  /@scalar/express-api-reference@0.10.23:
+    resolution: {integrity: sha512-BAooAmQYvAcyWz4UwFUAXRSrXD3CajZmZ+ZPDi5hsVjygK8lSFnPlfyvLb0woNScMsbb6ree0U6+QG+yiaeygA==}
     engines: {node: '>=22'}
     dependencies:
-      '@scalar/client-side-rendering': 0.4.3
+      '@scalar/client-side-rendering': 0.4.5
     dev: false
 
-  /@scalar/helpers@0.13.0:
-    resolution: {integrity: sha512-1vB6AZXCQZPb+MApSrso6ss+rbLuiI/vGe+PmiXm8Cnt6B+10JeacDPoPr51EgSwltSfH2hZhJ7hHjW2pSg+bQ==}
+  /@scalar/helpers@0.15.0:
+    resolution: {integrity: sha512-eUnaVQ1EE2YFIVrPOQxVaUiVYZjM6Yg2Oh0yUI87pyI0ilH6jOLA6wIJVWP/AXLv5WnhsfJW33xlZcztozEZ2A==}
     engines: {node: '>=22'}
     dev: false
 
-  /@scalar/schemas@0.11.0:
-    resolution: {integrity: sha512-rtvZSsL7IFcHLB1j0VJIgW2MJ702NPOvlhRoRWU4gDK4rGDRmy58BzXtF7gbKOm8vA8aX24NIMr7itwc1Pp6AQ==}
-    engines: {node: '>=22'}
-    dependencies:
-      '@scalar/helpers': 0.13.0
-      '@scalar/validation': 0.6.4
-    dev: false
-
-  /@scalar/types@0.21.0:
-    resolution: {integrity: sha512-kl/GSKZ2DynaaP1LxnyXxopgoIYrtUI95cOeG3KYkdGJ6pEn3MJ6PDmWfRQNj3gH/ZRx2UuNIf3jVvtMNrlrKA==}
+  /@scalar/schemas@0.12.1:
+    resolution: {integrity: sha512-D/1h/ek2mCwZFOBHQQ8gqD/pQ6Dz5xwur3s6aCwA71AnDF8/Wh+nwUNyIz+H4iquYIq5AUQD02mRyhUE/nIqtg==}
     engines: {node: '>=22'}
     dependencies:
-      '@scalar/helpers': 0.13.0
+      '@scalar/helpers': 0.15.0
+      '@scalar/validation': 0.6.5
+    dev: false
+
+  /@scalar/types@0.22.1:
+    resolution: {integrity: sha512-h8/oe1tG1UIPoAKETiOBtYpyoH7GW3mp4Yu3Znl1RWa2iYLWl7ZtnqJ2A+n5s7MvZEDAb33pt4W/eswB3VVr6Q==}
+    engines: {node: '>=22'}
+    dependencies:
+      '@scalar/helpers': 0.15.0
       nanoid: 5.1.16
       type-fest: 5.9.0
       zod: 4.6.4
     dev: false
 
-  /@scalar/validation@0.6.4:
-    resolution: {integrity: sha512-s93HFX0+N6bLwGjZPKFGVHq/gWiZy1YQkR2+dSflbUdYp+4j2Pg+WDA0gwbFrsOlgtkEjwQbjXtbmBiFTtPYUg==}
+  /@scalar/validation@0.6.5:
+    resolution: {integrity: sha512-t/dtbqesbOLsTusFI2kXfiFEQOiZC7+oAY+jZnE82Y64xLamo/1KrZpta8GkuAfIHyeOHOx5bDFid04eO13MIg==}
     engines: {node: '>=20'}
     dev: false
 

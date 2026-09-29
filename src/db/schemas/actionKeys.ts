@@ -17,3 +17,6 @@ export const actionKeysTable = p.snakeCase.table("action_keys", {
   keyHash: p.varchar({ length: 64 }).notNull(),
   createdAt: timestamps.createdAt,
 });
+
+export type ActionKeysSelect = typeof actionKeysTable.$inferSelect;
+export type ActionKeysInsert = typeof actionKeysTable.$inferInsert;

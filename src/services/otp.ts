@@ -2,7 +2,7 @@ import * as d from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 import db from "../db/db.js";
-import { otpsTable, type OTPType } from "../db/schemas/otps.js";
+import { otpsTable } from "../db/schemas/otps.js";
 import {
   generateOTP,
   generateRandomString,
@@ -11,6 +11,7 @@ import {
   ServiceError,
 } from "../utils/utils.js";
 import { actionKeysTable } from "../db/schemas/actionKeys.js";
+import type { OTPType } from "../types/schemas/otps.js";
 
 export class OTP {
   /**

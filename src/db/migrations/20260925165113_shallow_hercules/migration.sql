@@ -1,0 +1,1 @@
+ALTER TABLE "profileInfo" RENAME TO "usersInfo";

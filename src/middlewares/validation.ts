@@ -2,7 +2,7 @@ import type { ZodObject } from "zod";
 import * as d from "drizzle-orm";
 import type { Request } from "express";
 
-import type { Middleware } from "../types/types.js";
+import type { Middleware } from "../types/api.js";
 import db from "../db/db.js";
 import { actionKeysTable, actionTypes } from "../db/schemas/actionKeys.js";
 import { hashSHA256 } from "../utils/utils.js";
@@ -29,7 +29,12 @@ export const validateRequestData: (
 
   if (result.success) {
     if (dataType === "body") req.body = result.data;
-    else if (dataType === "query_param") req.query = result.data as any;
+    else if (dataType === "query_param") {
+      // req.query = result.data; doesn't work, because req.query is only a getter
+      for (const key in result.data) {
+        req.query[key] = result.data[key] as any;
+      }
+    }
 
     return next();
   }

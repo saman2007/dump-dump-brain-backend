@@ -5,7 +5,7 @@ import db from "../db/db.js";
 import { usersTable } from "../db/schemas/users.js";
 import { sendOtpEmail } from "../services/email.js";
 import { OTP } from "../services/otp.js";
-import type { Controller } from "../types/types.js";
+import type { Controller } from "../types/api.js";
 import { getColumnsIncludes, ServiceError } from "../utils/utils.js";
 import { usernameSchema } from "../utils/validations.js";
 import { getApiMdFile } from "../docs/openapi.js";

@@ -1,15 +1,15 @@
 import * as z from "zod";
 
-import { Auth, User } from "../services/auth.js";
+import { Auth, AuthUser } from "../services/auth.js";
 import { OTP } from "../services/otp.js";
-import type { Controller } from "../types/types.js";
+import type { Controller } from "../types/api.js";
 import {
   emailSchema,
   passwordSchema,
   usernameSchema,
 } from "../utils/validations.js";
 import { sendOtpEmail, sendWelcomeEmail } from "../services/email.js";
-import type { AuthUser } from "../db/schemas/users.js";
+import type { AuthUser as AuthUserType } from "../types/schemas/users.js";
 import { IS_WEBSITE_SECURE } from "../utils/constants.js";
 import { ServiceError } from "../utils/utils.js";
 
@@ -38,8 +38,8 @@ export const signupPostController: Controller = async (req, res) => {
   const userData: SignupUserType = req.body;
 
   const [isEmailTaken, isUsernameTaken] = await Promise.all([
-    User.isEmailTaken(userData.email),
-    User.isUsernameTaken(userData.username),
+    AuthUser.isEmailTaken(userData.email),
+    AuthUser.isUsernameTaken(userData.username),
   ]);
 
   const takenErrors: { field: string; message: string }[] = [];
@@ -63,7 +63,7 @@ export const signupPostController: Controller = async (req, res) => {
       data: takenErrors,
     });
 
-  const userId = await User.register(userData);
+  const userId = await AuthUser.register(userData);
 
   const otp = await OTP.generate(userId, "account_verification");
 
@@ -93,15 +93,15 @@ export const signinUserSchema = z.object({
 });
 export type SigninUserType = z.infer<typeof signinUserSchema>;
 
-export const signinPostController: Controller<AuthUser | string> = async (
+export const signinPostController: Controller<AuthUserType | string> = async (
   req,
   res,
 ) => {
   const { usernameOrEmail, password } = req.body as SigninUserType;
 
-  const user = await User.getByUsernameOrEmail(
+  const user = await AuthUser.getByUsernameOrEmail(
     usernameOrEmail,
-    "NO_TIMESTAMP_USER",
+    "NO_TIMESTAMP_AUTH_USER",
   );
 
   if (!user) {
@@ -113,7 +113,7 @@ export const signinPostController: Controller<AuthUser | string> = async (
     });
   }
 
-  const isPasswordValid = await User.checkPassword(user.password, password);
+  const isPasswordValid = await AuthUser.checkPassword(user.password, password);
 
   if (!isPasswordValid) {
     return res.status(401).json({
@@ -182,7 +182,7 @@ export const signin2FASchema = z.object({
 
 export type Signin2FASchema = z.infer<typeof signin2FASchema>;
 
-export const signin2FAPostController: Controller<AuthUser> = async (
+export const signin2FAPostController: Controller<AuthUserType> = async (
   req,
   res,
 ) => {
@@ -190,7 +190,7 @@ export const signin2FAPostController: Controller<AuthUser> = async (
     userId: string;
   };
 
-  const user = (await User.getById(userId, "AUTH_USER"))!;
+  const user = (await AuthUser.getById(userId, "AUTH_USER"))!;
 
   const { accessToken, refreshToken } = await Auth.createSession(
     user.id,
