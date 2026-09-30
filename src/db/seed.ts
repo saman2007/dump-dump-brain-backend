@@ -3,9 +3,9 @@ import { hash } from "bcrypt";
 import * as d from "drizzle-orm";
 
 import db from "./db.js";
-import { usersTable } from "./schemas/users.js";
-import { usersInfoTable } from "./schemas/usersInfo.js";
-import { followsTable } from "./schemas/follows.js";
+import { usersTable } from "./schemas/auth/users.js";
+import { usersInfoTable } from "./schemas/profile/usersInfo.js";
+import { followsTable } from "./schemas/profile/follows.js";
 
 interface SeedAuthor {
   username: string;
@@ -194,7 +194,9 @@ async function seed() {
     await db.insert(followsTable).values(followInserts);
   }
 
-  console.log("Database seeding completed successfully. Default password for users: Password123!");
+  console.log(
+    "Database seeding completed successfully. Default password for users: Password123!",
+  );
   process.exit(0);
 }
 

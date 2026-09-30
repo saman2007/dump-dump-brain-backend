@@ -2,7 +2,7 @@ import * as d from "drizzle-orm";
 import * as z from "zod";
 
 import db from "../db/db.js";
-import { usersTable } from "../db/schemas/users.js";
+import { usersTable } from "../db/schemas/auth/users.js";
 import { sendOtpEmail } from "../services/email.js";
 import { OTP } from "../services/otp.js";
 import type { Controller } from "../types/api.js";

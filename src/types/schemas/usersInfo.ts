@@ -1,7 +1,7 @@
 import type {
   UsersInfoInsert,
   UsersInfoSelect,
-} from "../../db/schemas/usersInfo.js";
+} from "../../db/schemas/profile/usersInfo.js";
 import type { FullAuthUser } from "./users.js";
 
 export interface UserFeeling {

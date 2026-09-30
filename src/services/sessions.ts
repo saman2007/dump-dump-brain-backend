@@ -1,7 +1,7 @@
 import * as d from "drizzle-orm";
 
 import db from "../db/db.js";
-import { sessionsTable } from "../db/schemas/sessions.js";
+import { sessionsTable } from "../db/schemas/auth/sessions.js";
 import type { RenderSession } from "../types/schemas/sessions.js";
 import { getColumnsExcept } from "../utils/utils.js";
 

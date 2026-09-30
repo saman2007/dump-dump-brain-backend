@@ -3,7 +3,7 @@ import { hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import db from "../db/db.js";
-import { usersTable } from "../db/schemas/users.js";
+import { usersTable } from "../db/schemas/auth/users.js";
 import type {
   FullAuthUser,
   UserRole,
@@ -17,8 +17,8 @@ import {
   ServiceError,
 } from "../utils/utils.js";
 import type { SignupUserType } from "../controllers/auth.js";
-import { sessionsTable } from "../db/schemas/sessions.js";
-import { usersInfoTable } from "../db/schemas/usersInfo.js";
+import { sessionsTable } from "../db/schemas/auth/sessions.js";
+import { usersInfoTable } from "../db/schemas/profile/usersInfo.js";
 
 export class AuthUser {
   private static readonly FIELD_EXCLUDES: Record<
