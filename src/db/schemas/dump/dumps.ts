@@ -4,24 +4,9 @@ import dumpsSchema from "./index.js";
 import { timestamps } from "../../columnHelpers.js";
 import { usersTable } from "../auth/users.js";
 import type { ReactionType } from "../../../types/schemas/dump.js";
+import { DUMP_MOOD } from "../../../utils/constants.js";
 
-export const dumpMoodEnum = dumpsSchema.enum("dump_mood", [
-  "sad",
-  "happy",
-  "thinking",
-  "pensive",
-  "meh",
-  "angry",
-  "exhausted",
-  "confused",
-  "inspired",
-  "hyped",
-  "funny",
-  "peaceful",
-  "anxious",
-]);
-
-export const BASE_EPOCH = Math.floor(new Date(2026, 0, 1).valueOf() / 1000);
+export const dumpMoodEnum = dumpsSchema.enum("dump_mood", DUMP_MOOD);
 
 export const dumpsTable = dumpsSchema.table(
   "dumps",

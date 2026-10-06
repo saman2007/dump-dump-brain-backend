@@ -4,15 +4,9 @@ import dumpsSchema from "./index.js";
 import { dumpsTable } from "./dumps.js";
 import { usersTable } from "../auth/users.js";
 import { timestamps } from "../../columnHelpers.js";
+import { DUMP_REACTION } from "../../../utils/constants.js";
 
-export const reactionEnum = dumpsSchema.enum("reaction", [
-  "understand",
-  "loved",
-  "heart_break",
-  "melting",
-  "funny",
-  "mind_blown",
-]);
+export const reactionEnum = dumpsSchema.enum("reaction", DUMP_REACTION);
 
 export const reactionsTable = dumpsSchema.table(
   "reactions",
