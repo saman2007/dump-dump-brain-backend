@@ -2,7 +2,12 @@ import * as d from "drizzle-orm";
 
 import db from "../db/db.js";
 import { dumpsTable } from "../db/schemas/dump/dumps.js";
-import type { PatchDumpData, PostDumpData } from "../types/schemas/dump.js";
+import { reactionsTable } from "../db/schemas/dump/reactions.js";
+import type {
+  PatchDumpData,
+  PostDumpData,
+  ReactionType,
+} from "../types/schemas/dump.js";
 
 export class Dump {
   private static HOT_SCORE_BASE_EPOCH = Math.floor(
@@ -38,13 +43,109 @@ export class Dump {
       .update(dumpsTable)
       .set(data)
       .where(
-        d.and(
-          d.eq(dumpsTable.id, dumpId),
-          d.eq(dumpsTable.author, authorId),
-        ),
+        d.and(d.eq(dumpsTable.id, dumpId), d.eq(dumpsTable.author, authorId)),
       )
       .returning({ id: dumpsTable.id });
 
     return result.length > 0;
+  }
+
+  public static async react(
+    dumpId: string,
+    userId: string,
+    reaction: ReactionType,
+  ): Promise<{
+    success: boolean;
+    notFound?: boolean;
+    action?: "added" | "updated" | "removed";
+  }> {
+    return await db.transaction(async (tx) => {
+      const [dump] = await tx
+        .select({
+          id: dumpsTable.id,
+          createdAt: dumpsTable.createdAt,
+          reactionsCount: dumpsTable.reactionsCount,
+        })
+        .from(dumpsTable)
+        .where(d.eq(dumpsTable.id, dumpId))
+        .for("no key update")
+        .limit(1);
+
+      if (!dump) {
+        return { success: false, notFound: true };
+      }
+
+      const [existingReaction] = await tx
+        .select({
+          id: reactionsTable.id,
+          reaction: reactionsTable.reaction,
+        })
+        .from(reactionsTable)
+        .where(
+          d.and(
+            d.eq(reactionsTable.dumpId, dumpId),
+            d.eq(reactionsTable.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      const updatedCounts = { ...dump.reactionsCount };
+      let action: "added" | "updated" | "removed";
+
+      if (existingReaction && existingReaction.reaction === reaction) {
+        // Toggle OFF (remove reaction)
+        await tx
+          .delete(reactionsTable)
+          .where(d.eq(reactionsTable.id, existingReaction.id));
+
+        updatedCounts[reaction] = Math.max(0, updatedCounts[reaction] - 1);
+
+        action = "removed";
+      } else if (existingReaction) {
+        // Switch to DIFFERENT reaction
+        await tx
+          .update(reactionsTable)
+          .set({ reaction })
+          .where(d.eq(reactionsTable.id, existingReaction.id));
+
+        updatedCounts[existingReaction.reaction] = Math.max(
+          0,
+          updatedCounts[existingReaction.reaction] - 1,
+        );
+
+        updatedCounts[reaction] = updatedCounts[reaction] + 1;
+        action = "updated";
+      } else {
+        // Add NEW reaction
+        await tx.insert(reactionsTable).values({
+          dumpId,
+          userId,
+          reaction,
+        });
+
+        updatedCounts[reaction] = updatedCounts[reaction] + 1;
+        action = "added";
+      }
+
+      const totalReactions = Object.values(updatedCounts).reduce(
+        (sum, count) => sum + count,
+        0,
+      );
+
+      const newHotScore = Dump.calculateHotScore(
+        totalReactions,
+        new Date(dump.createdAt),
+      );
+
+      await tx
+        .update(dumpsTable)
+        .set({
+          reactionsCount: updatedCounts,
+          hotScore: newHotScore,
+        })
+        .where(d.eq(dumpsTable.id, dumpId));
+
+      return { success: true, action };
+    });
   }
 }

@@ -1,7 +1,7 @@
 import z from "zod";
 import { Dump } from "../services/dumps.js";
 import type { Controller } from "../types/api.js";
-import { DUMP_MOOD } from "../utils/constants.js";
+import { DUMP_MOOD, DUMP_REACTION } from "../utils/constants.js";
 
 export const dumpPostSchema = z.object({
   content: z.string().min(1).max(3000),
@@ -64,5 +64,46 @@ export const dumpPatchController: Controller<null> = async (req, res) => {
     success: true,
     data: null,
     message: "Dump updated successfully.",
+  });
+};
+
+export const dumpReactionParamsSchema = z.object({
+  dumpId: z.string().min(1),
+});
+export type DumpReactionParamsType = z.infer<typeof dumpReactionParamsSchema>;
+
+export const dumpReactionBodySchema = z.object({
+  reaction: z.enum(DUMP_REACTION),
+});
+export type DumpReactionBodyType = z.infer<typeof dumpReactionBodySchema>;
+
+export const dumpReactionPostController: Controller<null> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.accessTokenPayload!;
+  const { dumpId } = req.params as DumpReactionParamsType;
+  const { reaction } = req.body as DumpReactionBodyType;
+
+  const result = await Dump.react(dumpId, userId, reaction);
+
+  if (result.notFound) {
+    return res.status(404).json({
+      success: false,
+      data: null,
+      message: "Dump not found.",
+    });
+  }
+
+  const messageMap = {
+    added: "Reaction added successfully.",
+    updated: "Reaction updated successfully.",
+    removed: "Reaction removed successfully.",
+  };
+
+  return res.status(200).json({
+    success: true,
+    data: null,
+    message: messageMap[result.action!],
   });
 };
