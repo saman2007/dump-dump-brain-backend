@@ -1,6 +1,11 @@
 import express from "express";
 
-import { dumpPostController, dumpPostSchema } from "../controllers/dumps.js";
+import {
+  dumpPatchBodySchema,
+  dumpPatchController,
+  dumpPostController,
+  dumpPostSchema,
+} from "../controllers/dumps.js";
 import { privateEndpoint } from "../middlewares/auth.js";
 import { validateRequestData } from "../middlewares/validation.js";
 
@@ -11,6 +16,13 @@ dumpRouter.post(
   validateRequestData(dumpPostSchema, "body"),
   privateEndpoint,
   dumpPostController,
+);
+
+dumpRouter.patch(
+  "/dumps/:dumpId",
+  validateRequestData(dumpPatchBodySchema, "body"),
+  privateEndpoint,
+  dumpPatchController,
 );
 
 export default dumpRouter;

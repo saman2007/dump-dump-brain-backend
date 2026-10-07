@@ -8,3 +8,5 @@ export type ReactionType = InferEnum<typeof reactionEnum>;
 export type DumpMoodType = InferEnum<typeof dumpMoodEnum>;
 
 export type PostDumpData = Pick<DumpInsert, "author" | "content" | "mood">;
+
+export type PatchDumpData = Partial<Pick<DumpInsert, "content" | "mood">>;

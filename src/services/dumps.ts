@@ -1,6 +1,8 @@
+import * as d from "drizzle-orm";
+
 import db from "../db/db.js";
 import { dumpsTable } from "../db/schemas/dump/dumps.js";
-import type { PostDumpData } from "../types/schemas/dump.js";
+import type { PatchDumpData, PostDumpData } from "../types/schemas/dump.js";
 
 export class Dump {
   private static HOT_SCORE_BASE_EPOCH = Math.floor(
@@ -25,5 +27,24 @@ export class Dump {
       .returning({ id: dumpsTable.id });
 
     return id;
+  }
+
+  public static async patch(
+    dumpId: string,
+    authorId: string,
+    data: PatchDumpData,
+  ): Promise<boolean> {
+    const result = await db
+      .update(dumpsTable)
+      .set(data)
+      .where(
+        d.and(
+          d.eq(dumpsTable.id, dumpId),
+          d.eq(dumpsTable.author, authorId),
+        ),
+      )
+      .returning({ id: dumpsTable.id });
+
+    return result.length > 0;
   }
 }
