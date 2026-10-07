@@ -40,6 +40,7 @@ export function generateOpenAPIDocument() {
       { name: "Account", description: getApiMdFile("account") },
       { name: "Sessions", description: getApiMdFile("sessions") },
       { name: "User", description: getApiMdFile("user") },
+      { name: "Dump", description: getApiMdFile("dump") },
     ],
     servers: [
       {
