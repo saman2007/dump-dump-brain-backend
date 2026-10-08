@@ -107,3 +107,29 @@ export const dumpReactionPostController: Controller<null> = async (
     message: messageMap[result.action!],
   });
 };
+
+export const dumpViewParamsSchema = z.object({
+  dumpId: z.string().min(1),
+});
+export type DumpViewParamsType = z.infer<typeof dumpViewParamsSchema>;
+
+export const dumpViewPostController: Controller<null> = async (req, res) => {
+  const { userId } = req.accessTokenPayload!;
+  const { dumpId } = req.params as DumpViewParamsType;
+
+  const result = await Dump.view(dumpId, userId);
+
+  if (result.notFound) {
+    return res.status(404).json({
+      success: false,
+      data: null,
+      message: "Dump not found.",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: null,
+    message: "View recorded successfully.",
+  });
+};

@@ -3,6 +3,7 @@ import * as d from "drizzle-orm";
 import db from "../db/db.js";
 import { dumpsTable } from "../db/schemas/dump/dumps.js";
 import { reactionsTable } from "../db/schemas/dump/reactions.js";
+import { viewsTable } from "../db/schemas/dump/views.js";
 import type {
   PatchDumpData,
   PostDumpData,
@@ -147,5 +148,46 @@ export class Dump {
 
       return { success: true, action };
     });
+  }
+
+  public static async view(
+    dumpId: string,
+    userId: string,
+  ): Promise<{ success: boolean; notFound?: boolean }> {
+    const [dump] = await db
+      .select({ id: dumpsTable.id })
+      .from(dumpsTable)
+      .where(d.eq(dumpsTable.id, dumpId))
+      .limit(1);
+
+    if (!dump) {
+      return { success: false, notFound: true };
+    }
+
+    const inserted = await db
+      .insert(viewsTable)
+      .values({ dumpId, userId, viewedAt: new Date() })
+      .onConflictDoNothing()
+      .returning({ id: viewsTable.id });
+
+    if (inserted.length > 0) {
+      await db
+        .update(dumpsTable)
+        .set({ views: d.sql`${dumpsTable.views} + 1` })
+        .where(d.eq(dumpsTable.id, dumpId));
+    } else {
+      // Already viewed by this user: update viewedAt timestamp to reset 15-day deduplication window
+      await db
+        .update(viewsTable)
+        .set({ viewedAt: new Date() })
+        .where(
+          d.and(
+            d.eq(viewsTable.userId, userId),
+            d.eq(viewsTable.dumpId, dumpId),
+          ),
+        );
+    }
+
+    return { success: true };
   }
 }
