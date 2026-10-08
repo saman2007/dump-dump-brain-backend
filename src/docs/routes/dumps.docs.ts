@@ -6,6 +6,7 @@ import {
   dumpPostSchema,
   dumpReactionBodySchema,
   dumpReactionParamsSchema,
+  dumpViewParamsSchema,
 } from "../../controllers/dumps.js";
 import { getApiMdFile, registry } from "../openapi.js";
 import {
@@ -164,6 +165,47 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: validationErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("Dump not found."),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// POST /dumps/{dumpId}/view docs
+registry.registerPath({
+  method: "post",
+  path: "/dumps/{dumpId}/view",
+  summary: "/dumps/{dumpId}/view",
+  description: getApiMdFile("view-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpViewParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("View recorded successfully."),
+          }),
         },
       },
     },

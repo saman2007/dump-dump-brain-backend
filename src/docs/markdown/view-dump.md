@@ -1,0 +1,1 @@
+An API to record an impression / view on a dump. Marks the dump as seen by the authenticated user to support feed deduplication (excluding dumps seen in the last 15 days), and increments the dump's total views count for new viewers.
