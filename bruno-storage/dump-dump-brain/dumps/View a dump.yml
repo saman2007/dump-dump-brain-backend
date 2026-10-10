@@ -1,0 +1,16 @@
+info:
+  name: View a dump
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{DEV_URL}}/dumps/{dumpId}/view"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
