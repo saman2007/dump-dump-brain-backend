@@ -1,7 +1,9 @@
 import z from "zod";
 import { Dump } from "../services/dumps.js";
 import type { Controller } from "../types/api.js";
+import type { FeedDumpItem } from "../types/schemas/dump.js";
 import { DUMP_MOOD, DUMP_REACTION } from "../utils/constants.js";
+
 
 export const dumpPostSchema = z.object({
   content: z.string().min(1).max(3000),
@@ -133,3 +135,28 @@ export const dumpViewPostController: Controller<null> = async (req, res) => {
     message: "View recorded successfully.",
   });
 };
+
+export const dumpFeedQuerySchema = z.object({
+  cursor: z.string().optional(),
+});
+export type DumpFeedQueryType = z.infer<typeof dumpFeedQuerySchema>;
+
+export const dumpFeedGetController: Controller<{
+  items: FeedDumpItem[];
+  nextCursor?: string;
+}> = async (req, res) => {
+  const { userId } = req.accessTokenPayload!;
+  const { cursor } = req.query as DumpFeedQueryType;
+
+  const result = await Dump.getFeed(userId, cursor);
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      items: result.data,
+      nextCursor: result.cursor,
+    },
+    message: null,
+  });
+};
+

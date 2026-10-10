@@ -91,3 +91,19 @@ export const generateRandomString = (n: number): Promise<string> => {
 export const hashSHA256 = (input: string) => {
   return crypto.hash("sha256", input, "hex");
 };
+
+/**
+ * Shuffles an array.
+ * @returns A new shuffled array without mutating the original array.
+ */
+export const shuffleArray = <T>(array: readonly T[]): T[] => {
+  const shuffled = [...array];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    
+    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+  }
+
+  return shuffled;
+};

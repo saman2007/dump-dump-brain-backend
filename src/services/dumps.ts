@@ -5,10 +5,20 @@ import { dumpsTable } from "../db/schemas/dump/dumps.js";
 import { reactionsTable } from "../db/schemas/dump/reactions.js";
 import { viewsTable } from "../db/schemas/dump/views.js";
 import type {
+  DumpsFeedCursor,
+  FeedDumpItem,
   PatchDumpData,
   PostDumpData,
   ReactionType,
 } from "../types/schemas/dump.js";
+import {
+  getColumnsExcept,
+  getColumnsIncludes,
+  shuffleArray,
+} from "../utils/utils.js";
+import { usersTable } from "../db/schemas/auth/users.js";
+import { usersInfoTable } from "../db/schemas/profile/usersInfo.js";
+import { followsTable } from "../db/schemas/profile/follows.js";
 
 export class Dump {
   private static HOT_SCORE_BASE_EPOCH = Math.floor(
@@ -189,5 +199,230 @@ export class Dump {
     }
 
     return { success: true };
+  }
+
+  public static async getFeed(
+    userId: string,
+    cursor?: string,
+  ): Promise<{ data: FeedDumpItem[]; cursor?: string }> {
+    const TRENDING_DUMPS_NUMBER = 9;
+    const COLD_START_DUMPS_NUMBER = 3;
+    const USERS_FOLLOWING_DUMPS_NUMBER = 3;
+    const TARGET_FEED_SIZE = 15;
+    const COLD_START_MAX_VIEWS = 50;
+
+    /**
+     * Dumps that are viewed by the user within 15 days, shouldn't be in the user's feed.
+     * But dumps that are viewed by the user more than 15 days ago, have the chance to be in the user's feed.
+     */
+    const viewedDumpIds: string[] = (
+      await db
+        .select({ id: viewsTable.dumpId })
+        .from(viewsTable)
+        .where(
+          d.and(
+            d.gt(
+              viewsTable.viewedAt,
+              new Date(Date.now() - 1000 * 60 * 60 * 24 * 15),
+            ),
+            d.eq(viewsTable.userId, userId),
+          ),
+        )
+    ).map(({ id }) => id);
+
+    let excludeDumps: string[] = [...viewedDumpIds];
+
+    let cursorObj: DumpsFeedCursor | null = null;
+
+    try {
+      if (cursor) {
+        cursorObj = JSON.parse(Buffer.from(cursor, "base64").toString("utf-8"));
+      }
+    } catch {}
+
+    const dumpSelectFields = {
+      ...getColumnsExcept(dumpsTable, ["views", "updatedAt"]),
+      author: {
+        id: usersTable.id,
+        username: usersTable.username,
+        avatar: usersInfoTable.avatar,
+        displayName: usersInfoTable.displayName,
+      },
+    };
+
+    const trendingDumps = await db
+      .select(dumpSelectFields)
+      .from(dumpsTable)
+      .innerJoin(usersTable, d.eq(dumpsTable.author, usersTable.id))
+      .innerJoin(usersInfoTable, d.eq(dumpsTable.author, usersInfoTable.userId))
+      .where(
+        d.and(
+          d.ne(dumpsTable.author, userId),
+          excludeDumps.length > 0
+            ? d.notInArray(dumpsTable.id, excludeDumps)
+            : undefined,
+          cursorObj?.hotScore && cursorObj?.trendingDumpId
+            ? d.or(
+                d.and(
+                  d.eq(dumpsTable.hotScore, cursorObj.hotScore),
+                  d.lt(dumpsTable.id, cursorObj.trendingDumpId),
+                ),
+                d.lt(dumpsTable.hotScore, cursorObj.hotScore),
+              )
+            : undefined,
+        ),
+      )
+      .orderBy(d.desc(dumpsTable.hotScore), d.desc(dumpsTable.id))
+      .limit(TRENDING_DUMPS_NUMBER);
+
+    excludeDumps.push(...trendingDumps.map(({ id }) => id));
+
+    const twoDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 48);
+
+    const coldStartDumps = await db
+      .select(dumpSelectFields)
+      .from(dumpsTable)
+      .innerJoin(usersTable, d.eq(dumpsTable.author, usersTable.id))
+      .innerJoin(usersInfoTable, d.eq(dumpsTable.author, usersInfoTable.userId))
+      .where(
+        d.and(
+          d.ne(dumpsTable.author, userId),
+          d.lte(dumpsTable.views, COLD_START_MAX_VIEWS),
+          excludeDumps.length > 0
+            ? d.notInArray(dumpsTable.id, excludeDumps)
+            : undefined,
+          cursorObj?.coldStartCreatedAt && cursorObj?.coldStartDumpId
+            ? d.or(
+                d.and(
+                  d.eq(
+                    dumpsTable.createdAt,
+                    new Date(cursorObj.coldStartCreatedAt),
+                  ),
+                  d.lt(dumpsTable.id, cursorObj.coldStartDumpId),
+                ),
+                d.lt(
+                  dumpsTable.createdAt,
+                  new Date(cursorObj.coldStartCreatedAt),
+                ),
+              )
+            : undefined,
+          d.gte(dumpsTable.createdAt, twoDaysAgo),
+        ),
+      )
+      .orderBy(d.desc(dumpsTable.createdAt), d.desc(dumpsTable.id))
+      .limit(COLD_START_DUMPS_NUMBER);
+
+    excludeDumps.push(...coldStartDumps.map(({ id }) => id));
+
+    const usersFollowingId: string[] = (
+      await db
+        .select(getColumnsIncludes(followsTable, ["followingId"]))
+        .from(followsTable)
+        .where(d.eq(followsTable.followerId, userId))
+    ).map(({ followingId }) => followingId);
+
+    let usersFollowingDumps: (FeedDumpItem & { hotScore: number })[] = [];
+
+    if (usersFollowingId.length > 0) {
+      usersFollowingDumps = await db
+        .select(dumpSelectFields)
+        .from(dumpsTable)
+        .innerJoin(usersTable, d.eq(dumpsTable.author, usersTable.id))
+        .innerJoin(
+          usersInfoTable,
+          d.eq(dumpsTable.author, usersInfoTable.userId),
+        )
+        .where(
+          d.and(
+            d.ne(dumpsTable.author, userId),
+            excludeDumps.length > 0
+              ? d.notInArray(dumpsTable.id, excludeDumps)
+              : undefined,
+
+            d.inArray(dumpsTable.author, usersFollowingId),
+            cursorObj?.usersFollowingCreatedAt &&
+              cursorObj?.usersFollowingDumpId
+              ? d.or(
+                  d.and(
+                    d.eq(
+                      dumpsTable.createdAt,
+                      new Date(cursorObj.usersFollowingCreatedAt),
+                    ),
+                    d.lt(dumpsTable.id, cursorObj.usersFollowingDumpId),
+                  ),
+                  d.lt(
+                    dumpsTable.createdAt,
+                    new Date(cursorObj.usersFollowingCreatedAt),
+                  ),
+                )
+              : undefined,
+          ),
+        )
+        .orderBy(d.desc(dumpsTable.createdAt), d.desc(dumpsTable.id))
+        .limit(USERS_FOLLOWING_DUMPS_NUMBER);
+    }
+
+    const feed = [...trendingDumps, ...coldStartDumps, ...usersFollowingDumps];
+
+    if (feed.length < TARGET_FEED_SIZE) {
+      const needed = TARGET_FEED_SIZE - feed.length;
+
+      const alreadySelectedIds = feed.map(({ id }) => id);
+
+      const fallbackDumps = await db
+        .select(dumpSelectFields)
+        .from(dumpsTable)
+        .innerJoin(usersTable, d.eq(dumpsTable.author, usersTable.id))
+        .innerJoin(
+          usersInfoTable,
+          d.eq(dumpsTable.author, usersInfoTable.userId),
+        )
+        .where(
+          d.and(
+            d.ne(dumpsTable.author, userId),
+            alreadySelectedIds.length > 0
+              ? d.notInArray(dumpsTable.id, alreadySelectedIds)
+              : undefined,
+          ),
+        )
+        .orderBy(d.sql`RANDOM()`)
+        .limit(needed);
+
+      feed.push(...fallbackDumps);
+    }
+
+    const newCursorObj: DumpsFeedCursor = {};
+
+    if (trendingDumps.length > 0) {
+      newCursorObj.hotScore = trendingDumps.at(-1)!.hotScore;
+      newCursorObj.trendingDumpId = trendingDumps.at(-1)!.id;
+    }
+
+    if (coldStartDumps.length > 0) {
+      newCursorObj.coldStartDumpId = coldStartDumps.at(-1)!.id;
+      newCursorObj.coldStartCreatedAt = coldStartDumps
+        .at(-1)!
+        .createdAt.valueOf();
+    }
+
+    if (usersFollowingDumps.length > 0) {
+      newCursorObj.usersFollowingDumpId = usersFollowingDumps.at(-1)!.id;
+      newCursorObj.usersFollowingCreatedAt = usersFollowingDumps
+        .at(-1)!
+        .createdAt.valueOf();
+    }
+
+    const returnObj: { data: FeedDumpItem[]; cursor?: string } = {
+      data: shuffleArray(feed.map(({ hotScore: _, ...other }) => other)),
+    };
+
+    if (Object.keys(newCursorObj as object).length > 0) {
+      returnObj.cursor = Buffer.from(
+        JSON.stringify(newCursorObj),
+        "utf-8",
+      ).toString("base64");
+    }
+
+    return returnObj;
   }
 }

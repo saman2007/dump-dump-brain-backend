@@ -103,19 +103,17 @@ export class User {
     cursor: Date | null,
     cursorId: string | null = null,
   ): Promise<FollowItem[]> {
-    const truncatedCreatedAt = d.sql<Date>`date_trunc('milliseconds', ${followsTable.createdAt})`;
-
     const cursorCondition =
       cursor && cursorId
         ? d.or(
-            d.lt(truncatedCreatedAt, cursor),
+            d.lt(followsTable.createdAt, cursor),
             d.and(
-              d.eq(truncatedCreatedAt, cursor),
+              d.eq(followsTable.createdAt, cursor),
               d.lt(followsTable.id, cursorId),
             ),
           )
         : cursor
-          ? d.lt(truncatedCreatedAt, cursor)
+          ? d.lt(followsTable.createdAt, cursor)
           : undefined;
 
     const followingUsers = await db

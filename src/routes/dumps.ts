@@ -1,6 +1,8 @@
 import express from "express";
 
 import {
+  dumpFeedGetController,
+  dumpFeedQuerySchema,
   dumpPatchBodySchema,
   dumpPatchController,
   dumpPostController,
@@ -13,6 +15,13 @@ import { privateEndpoint } from "../middlewares/auth.js";
 import { validateRequestData } from "../middlewares/validation.js";
 
 const dumpRouter = express.Router();
+
+dumpRouter.get(
+  "/dumps/feed",
+  validateRequestData(dumpFeedQuerySchema, "query_param"),
+  privateEndpoint,
+  dumpFeedGetController,
+);
 
 dumpRouter.post(
   "/dumps",
