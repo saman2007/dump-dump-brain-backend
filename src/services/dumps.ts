@@ -210,6 +210,8 @@ export class Dump {
     const USERS_FOLLOWING_DUMPS_NUMBER = 3;
     const TARGET_FEED_SIZE = 15;
     const COLD_START_MAX_VIEWS = 50;
+    const twoDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 48);
+    const fifteenDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 15);
 
     /**
      * Dumps that are viewed by the user within 15 days, shouldn't be in the user's feed.
@@ -221,10 +223,7 @@ export class Dump {
         .from(viewsTable)
         .where(
           d.and(
-            d.gt(
-              viewsTable.viewedAt,
-              new Date(Date.now() - 1000 * 60 * 60 * 24 * 15),
-            ),
+            d.gt(viewsTable.viewedAt, fifteenDaysAgo),
             d.eq(viewsTable.userId, userId),
           ),
         )
@@ -276,8 +275,6 @@ export class Dump {
       .limit(TRENDING_DUMPS_NUMBER);
 
     excludeDumps.push(...trendingDumps.map(({ id }) => id));
-
-    const twoDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 48);
 
     const coldStartDumps = await db
       .select(dumpSelectFields)
@@ -385,7 +382,7 @@ export class Dump {
               : undefined,
           ),
         )
-        .orderBy(d.sql`RANDOM()`)
+        .orderBy(d.sql`RANDOM()`, d.asc(dumpsTable.createdAt))
         .limit(needed);
 
       feed.push(...fallbackDumps);

@@ -1,6 +1,7 @@
 import z from "zod";
 
 import {
+  dumpFeedQuerySchema,
   dumpPatchBodySchema,
   dumpPatchParamsSchema,
   dumpPostSchema,
@@ -14,6 +15,8 @@ import {
   jwtErrorResponse,
   validationErrorResponseSchema,
 } from "../schemas.js";
+import { DUMP_MOOD, DUMP_REACTION } from "../../utils/constants.js";
+
 
 // POST /dumps docs
 registry.registerPath({
@@ -222,6 +225,68 @@ registry.registerPath({
           }),
         },
       },
+    },
+  },
+});
+
+export const feedAuthorSchema = registry.register(
+  "FeedAuthor",
+  z.object({
+    id: z.string().uuid(),
+    username: z.string(),
+    avatar: z.string().nullable(),
+    displayName: z.string().nullable(),
+  }),
+);
+
+export const feedDumpItemSchema = registry.register(
+  "FeedDumpItem",
+  z.object({
+    id: z.string().uuid(),
+    content: z.string(),
+    mood: z.enum(DUMP_MOOD),
+    reactionsCount: z.record(z.enum(DUMP_REACTION), z.number()),
+    createdAt: z.date(),
+    author: feedAuthorSchema,
+  }),
+);
+
+// GET /dumps/feed docs
+registry.registerPath({
+  method: "get",
+  path: "/dumps/feed",
+  summary: "/dumps/feed",
+  description: getApiMdFile("feed-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    query: dumpFeedQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              items: z.array(feedDumpItemSchema),
+              nextCursor: z.string().optional(),
+            }),
+            message: z.null(),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: validationErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
     },
   },
 });
