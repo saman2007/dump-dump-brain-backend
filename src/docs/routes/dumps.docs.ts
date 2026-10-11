@@ -8,6 +8,8 @@ import {
   dumpReactionBodySchema,
   dumpReactionParamsSchema,
   dumpViewParamsSchema,
+  dumpCommentBodySchema,
+  dumpCommentParamsSchema,
 } from "../../controllers/dumps.js";
 import { getApiMdFile, registry } from "../openapi.js";
 import {
@@ -229,6 +231,85 @@ registry.registerPath({
   },
 });
 
+// POST /dumps/{dumpId}/comments docs
+registry.registerPath({
+  method: "post",
+  path: "/dumps/{dumpId}/comments",
+  summary: "/dumps/{dumpId}/comments",
+  description: getApiMdFile("post-comment"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpCommentParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: dumpCommentBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              id: z.string().uuid(),
+            }),
+            message: z.literal("Comment posted successfully."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "Parent comment does not belong to this dump.",
+                ),
+              })
+              .openapi({ title: "ParentCommentMismatch" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Dump not found."),
+              })
+              .openapi({ title: "DumpNotFound" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Parent comment not found."),
+              })
+              .openapi({ title: "ParentCommentNotFound" }),
+          ]),
+        },
+      },
+    },
+  },
+});
+
 export const feedAuthorSchema = registry.register(
   "FeedAuthor",
   z.object({
@@ -246,6 +327,7 @@ export const feedDumpItemSchema = registry.register(
     content: z.string(),
     mood: z.enum(DUMP_MOOD),
     reactionsCount: z.record(z.enum(DUMP_REACTION), z.number()),
+    commentsCount: z.number(),
     createdAt: z.date(),
     author: feedAuthorSchema,
   }),
