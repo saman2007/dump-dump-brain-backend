@@ -37,3 +37,11 @@ export interface DumpsFeedCursor {
   usersFollowingCreatedAt?: number;
   usersFollowingDumpId?: string;
 }
+
+export type PostCommentData = {
+  dumpId: string;
+  userId: string;
+  content: string;
+  replyingTo?: string;
+};
+

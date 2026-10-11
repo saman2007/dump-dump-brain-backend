@@ -19,6 +19,7 @@ export const dumpsTable = dumpsSchema.table(
       .references(() => usersTable.id, { onDelete: "cascade" }),
     mood: dumpMoodEnum().notNull(),
     views: p.integer().notNull().default(0),
+    commentsCount: p.integer().notNull().default(0),
     hotScore: p.doublePrecision().notNull(),
     reactionsCount: p
       .jsonb()

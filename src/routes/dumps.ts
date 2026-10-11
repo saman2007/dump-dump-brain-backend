@@ -10,6 +10,8 @@ import {
   dumpReactionBodySchema,
   dumpReactionPostController,
   dumpViewPostController,
+  dumpCommentBodySchema,
+  dumpCommentPostController,
 } from "../controllers/dumps.js";
 import { privateEndpoint } from "../middlewares/auth.js";
 import { validateRequestData } from "../middlewares/validation.js";
@@ -48,6 +50,13 @@ dumpRouter.post(
   "/dumps/:dumpId/view",
   privateEndpoint,
   dumpViewPostController,
+);
+
+dumpRouter.post(
+  "/dumps/:dumpId/comments",
+  validateRequestData(dumpCommentBodySchema, "body"),
+  privateEndpoint,
+  dumpCommentPostController,
 );
 
 export default dumpRouter;

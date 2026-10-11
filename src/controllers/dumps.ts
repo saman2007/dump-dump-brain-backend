@@ -4,7 +4,6 @@ import type { Controller } from "../types/api.js";
 import type { FeedDumpItem } from "../types/schemas/dump.js";
 import { DUMP_MOOD, DUMP_REACTION } from "../utils/constants.js";
 
-
 export const dumpPostSchema = z.object({
   content: z.string().min(1).max(3000),
   mood: z.enum(DUMP_MOOD),
@@ -160,3 +159,68 @@ export const dumpFeedGetController: Controller<{
   });
 };
 
+export const dumpCommentParamsSchema = z.object({
+  dumpId: z.string(),
+});
+export type DumpCommentParamsType = z.infer<typeof dumpCommentParamsSchema>;
+
+export const dumpCommentBodySchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, "Comment content cannot be empty.")
+    .max(1000, "Comment cannot exceed 1000 characters."),
+  replyingTo: z
+    .string()
+    .optional()
+    .meta({ description: "The id of the comment that user is replying to." }),
+});
+export type DumpCommentBodyType = z.infer<typeof dumpCommentBodySchema>;
+
+export const dumpCommentPostController: Controller<{ id: string }> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.accessTokenPayload!;
+  const { dumpId } = req.params as DumpCommentParamsType;
+  const { content, replyingTo } = req.body as DumpCommentBodyType;
+
+  const result = await Dump.sendComment({
+    dumpId,
+    userId,
+    content,
+    replyingTo,
+  });
+
+  if (!result.success) {
+    if (result.notFound === "dump") {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Dump not found.",
+      });
+    }
+
+    if (result.notFound === "parent_comment") {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Parent comment not found.",
+      });
+    }
+
+    if (result.parentMismatch) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Parent comment does not belong to this dump.",
+      });
+    }
+  }
+
+  return res.status(201).json({
+    success: true,
+    data: { id: result.id! },
+    message: "Comment posted successfully.",
+  });
+};

@@ -4,10 +4,12 @@ import db from "../db/db.js";
 import { dumpsTable } from "../db/schemas/dump/dumps.js";
 import { reactionsTable } from "../db/schemas/dump/reactions.js";
 import { viewsTable } from "../db/schemas/dump/views.js";
+import { commentsTable } from "../db/schemas/dump/comments.js";
 import type {
   DumpsFeedCursor,
   FeedDumpItem,
   PatchDumpData,
+  PostCommentData,
   PostDumpData,
   ReactionType,
 } from "../types/schemas/dump.js";
@@ -199,6 +201,66 @@ export class Dump {
     }
 
     return { success: true };
+  }
+
+  public static async sendComment(data: PostCommentData): Promise<{
+    success: boolean;
+    id?: string;
+    notFound?: "dump" | "parent_comment";
+    parentMismatch?: boolean;
+  }> {
+    return await db.transaction(async (tx) => {
+      const [dump] = await tx
+        .select({ id: dumpsTable.id })
+        .from(dumpsTable)
+        .where(d.eq(dumpsTable.id, data.dumpId))
+        .limit(1);
+
+      if (!dump) {
+        return { success: false, notFound: "dump" };
+      }
+
+      if (data.replyingTo) {
+        const [parentComment] = await tx
+          .select({
+            id: commentsTable.id,
+            dumpId: commentsTable.dumpId,
+          })
+          .from(commentsTable)
+          .where(d.eq(commentsTable.id, data.replyingTo))
+          .limit(1);
+
+        if (!parentComment) {
+          return { success: false, notFound: "parent_comment" };
+        }
+
+        if (parentComment.dumpId !== data.dumpId) {
+          return { success: false, parentMismatch: true };
+        }
+
+        await tx
+          .update(commentsTable)
+          .set({ replyCount: d.sql`${commentsTable.replyCount} + 1` })
+          .where(d.eq(commentsTable.id, data.replyingTo));
+      }
+
+      const [{ id }] = await tx
+        .insert(commentsTable)
+        .values({
+          content: data.content,
+          dumpId: data.dumpId,
+          userId: data.userId,
+          replyingTo: data.replyingTo || null,
+        })
+        .returning({ id: commentsTable.id });
+
+      await tx
+        .update(dumpsTable)
+        .set({ commentsCount: d.sql`${dumpsTable.commentsCount} + 1` })
+        .where(d.eq(dumpsTable.id, data.dumpId));
+
+      return { success: true, id };
+    });
   }
 
   public static async getFeed(
