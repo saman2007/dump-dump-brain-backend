@@ -416,6 +416,90 @@ export class Dump {
     };
   }
 
+  public static async deleteComment({
+    dumpId,
+    commentId,
+    currentUserId,
+  }: {
+    dumpId: string;
+    commentId: string;
+    currentUserId: string;
+  }): Promise<{
+    success: boolean;
+    notFound?: "comment" | "dump";
+    dumpMismatch?: boolean;
+    forbidden?: boolean;
+  }> {
+    return await db.transaction(async (tx) => {
+      const [comment] = await tx
+        .select({
+          id: commentsTable.id,
+          dumpId: commentsTable.dumpId,
+          userId: commentsTable.userId,
+          replyingTo: commentsTable.replyingTo,
+        })
+        .from(commentsTable)
+        .where(d.eq(commentsTable.id, commentId))
+        .limit(1);
+
+      if (!comment) {
+        return { success: false, notFound: "comment" };
+      }
+
+      if (comment.dumpId !== dumpId) {
+        return { success: false, dumpMismatch: true };
+      }
+
+      const [dump] = await tx
+        .select({
+          id: dumpsTable.id,
+          author: dumpsTable.author,
+        })
+        .from(dumpsTable)
+        .where(d.eq(dumpsTable.id, dumpId))
+        .limit(1);
+
+      if (!dump) {
+        return { success: false, notFound: "dump" };
+      }
+
+      if (comment.userId !== currentUserId && dump.author !== currentUserId) {
+        return { success: false, forbidden: true };
+      }
+
+      const countResult = await tx.execute<{ count: number }>(d.sql`
+        WITH RECURSIVE to_delete AS (
+          SELECT id FROM "dumps"."comments" WHERE id = ${commentId}::uuid
+          UNION ALL
+          SELECT c.id FROM "dumps"."comments" c
+          JOIN to_delete td ON c.replying_to = td.id
+        )
+        SELECT COUNT(*)::int AS count FROM to_delete
+      `);
+      const totalDeleted = Number(countResult.rows[0]?.count ?? 1);
+
+      if (comment.replyingTo) {
+        await tx
+          .update(commentsTable)
+          .set({
+            replyCount: d.sql`GREATEST(0, ${commentsTable.replyCount} - 1)`,
+          })
+          .where(d.eq(commentsTable.id, comment.replyingTo));
+      }
+
+      await tx.delete(commentsTable).where(d.eq(commentsTable.id, commentId));
+
+      await tx
+        .update(dumpsTable)
+        .set({
+          commentsCount: d.sql`GREATEST(0, ${dumpsTable.commentsCount} - ${totalDeleted})`,
+        })
+        .where(d.eq(dumpsTable.id, dumpId));
+
+      return { success: true };
+    });
+  }
+
   public static async getFeed(
     userId: string,
     cursor?: string,

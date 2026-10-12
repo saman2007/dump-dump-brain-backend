@@ -290,3 +290,63 @@ export const dumpCommentsGetController: Controller<{
     message: null,
   });
 };
+
+export const dumpCommentDeleteSchema = z.object({
+  dumpId: z.string().min(1),
+  commentId: z.string().min(1),
+});
+export type DumpCommentDeleteType = z.infer<typeof dumpCommentDeleteSchema>;
+
+export const dumpCommentDeleteController: Controller<null> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.accessTokenPayload!;
+  const { dumpId, commentId } = req.body as DumpCommentDeleteType;
+
+  const result = await Dump.deleteComment({
+    dumpId,
+    commentId,
+    currentUserId: userId,
+  });
+
+  if (!result.success) {
+    if (result.notFound === "comment") {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Comment not found.",
+      });
+    }
+
+    if (result.notFound === "dump") {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Dump not found.",
+      });
+    }
+
+    if (result.dumpMismatch) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Comment does not belong to this dump.",
+      });
+    }
+
+    if (result.forbidden) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: "You do not have permission to delete this comment.",
+      });
+    }
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: null,
+    message: "Comment deleted successfully.",
+  });
+};
