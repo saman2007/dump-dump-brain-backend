@@ -10,6 +10,7 @@ import {
   dumpViewParamsSchema,
   dumpCommentBodySchema,
   dumpCommentParamsSchema,
+  dumpCommentsQuerySchema,
 } from "../../controllers/dumps.js";
 import { getApiMdFile, registry } from "../openapi.js";
 import {
@@ -278,6 +279,113 @@ registry.registerPath({
                 ),
               })
               .openapi({ title: "ParentCommentMismatch" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Dump not found."),
+              })
+              .openapi({ title: "DumpNotFound" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Parent comment not found."),
+              })
+              .openapi({ title: "ParentCommentNotFound" }),
+          ]),
+        },
+      },
+    },
+  },
+});
+
+export const commentAuthorSchema = registry.register(
+  "CommentAuthor",
+  z.object({
+    id: z.string().uuid(),
+    username: z.string(),
+    avatar: z.string().nullable(),
+    displayName: z.string().nullable(),
+  }),
+);
+
+export const commentItemSchema = registry.register(
+  "CommentItem",
+  z.object({
+    id: z.string().uuid(),
+    dumpId: z.string().uuid(),
+    content: z.string(),
+    replyingTo: z.string().uuid().nullable(),
+    likes: z.number(),
+    replyCount: z.number(),
+    isLiked: z.boolean(),
+    createdAt: z.date(),
+    updatedAt: z.date().nullable(),
+    author: commentAuthorSchema,
+  }),
+);
+
+// GET /dumps/{dumpId}/comments docs
+registry.registerPath({
+  method: "get",
+  path: "/dumps/{dumpId}/comments",
+  summary: "/dumps/{dumpId}/comments",
+  description: getApiMdFile("get-comments"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpCommentParamsSchema,
+    query: dumpCommentsQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              items: z.array(commentItemSchema),
+              nextCursor: z.string().nullable(),
+            }),
+            message: z.null(),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "Parent comment does not belong to this dump.",
+                ),
+              })
+              .openapi({ title: "ParentCommentMismatch" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Invalid cursor provided."),
+              })
+              .openapi({ title: "InvalidCursor" }),
           ]),
         },
       },
