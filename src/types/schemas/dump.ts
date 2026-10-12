@@ -45,3 +45,24 @@ export type PostCommentData = {
   replyingTo?: string;
 };
 
+export interface CommentAuthor {
+  id: string;
+  username: string;
+  avatar: string | null;
+  displayName: string | null;
+}
+
+export interface CommentItem {
+  id: string;
+  dumpId: string;
+  content: string;
+  replyingTo: string | null;
+  likes: number;
+  replyCount: number;
+  isLiked: boolean;
+  createdAt: Date;
+  updatedAt: Date | null;
+  author: CommentAuthor;
+}
+
+

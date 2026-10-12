@@ -12,6 +12,8 @@ import {
   dumpViewPostController,
   dumpCommentBodySchema,
   dumpCommentPostController,
+  dumpCommentsGetController,
+  dumpCommentsQuerySchema,
 } from "../controllers/dumps.js";
 import { privateEndpoint } from "../middlewares/auth.js";
 import { validateRequestData } from "../middlewares/validation.js";
@@ -57,6 +59,13 @@ dumpRouter.post(
   validateRequestData(dumpCommentBodySchema, "body"),
   privateEndpoint,
   dumpCommentPostController,
+);
+
+dumpRouter.get(
+  "/dumps/:dumpId/comments",
+  validateRequestData(dumpCommentsQuerySchema, "query_param"),
+  privateEndpoint,
+  dumpCommentsGetController,
 );
 
 export default dumpRouter;

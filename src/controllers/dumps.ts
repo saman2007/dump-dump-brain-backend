@@ -1,7 +1,7 @@
 import z from "zod";
 import { Dump } from "../services/dumps.js";
 import type { Controller } from "../types/api.js";
-import type { FeedDumpItem } from "../types/schemas/dump.js";
+import type { CommentItem, FeedDumpItem } from "../types/schemas/dump.js";
 import { DUMP_MOOD, DUMP_REACTION } from "../utils/constants.js";
 
 export const dumpPostSchema = z.object({
@@ -222,5 +222,71 @@ export const dumpCommentPostController: Controller<{ id: string }> = async (
     success: true,
     data: { id: result.id! },
     message: "Comment posted successfully.",
+  });
+};
+
+export const dumpCommentsQuerySchema = z.object({
+  cursor: z.string().optional(),
+  replyingTo: z.string().optional(),
+});
+export type DumpCommentsQueryType = z.infer<typeof dumpCommentsQuerySchema>;
+
+export const dumpCommentsGetController: Controller<{
+  items: CommentItem[];
+  nextCursor: string | null;
+}> = async (req, res) => {
+  const { userId } = req.accessTokenPayload!;
+  const dumpId = req.params.dumpId as string;
+  const { cursor, replyingTo } = req.query as DumpCommentsQueryType;
+
+  const result = await Dump.getComments({
+    dumpId,
+    currentUserId: userId,
+    cursor,
+    replyingTo,
+    limit: 10,
+  });
+
+  if (!result.success) {
+    if (result.notFound === "dump") {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Dump not found.",
+      });
+    }
+
+    if (result.notFound === "parent_comment") {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Parent comment not found.",
+      });
+    }
+
+    if (result.parentMismatch) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Parent comment does not belong to this dump.",
+      });
+    }
+
+    if (result.invalidCursor) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Invalid cursor provided.",
+      });
+    }
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      items: result.data!,
+      nextCursor: result.nextCursor ?? null,
+    },
+    message: null,
   });
 };

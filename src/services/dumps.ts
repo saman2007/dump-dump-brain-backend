@@ -5,7 +5,9 @@ import { dumpsTable } from "../db/schemas/dump/dumps.js";
 import { reactionsTable } from "../db/schemas/dump/reactions.js";
 import { viewsTable } from "../db/schemas/dump/views.js";
 import { commentsTable } from "../db/schemas/dump/comments.js";
+import { commentLikesTable } from "../db/schemas/dump/commentLikes.js";
 import type {
+  CommentItem,
   DumpsFeedCursor,
   FeedDumpItem,
   PatchDumpData,
@@ -261,6 +263,157 @@ export class Dump {
 
       return { success: true, id };
     });
+  }
+
+  public static async getComments({
+    dumpId,
+    currentUserId,
+    replyingTo,
+    cursor,
+    limit = 10,
+  }: {
+    dumpId: string;
+    currentUserId: string;
+    replyingTo?: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    data?: CommentItem[];
+    nextCursor?: string | null;
+    notFound?: "dump" | "parent_comment";
+    parentMismatch?: boolean;
+    invalidCursor?: boolean;
+  }> {
+    const [dump] = await db
+      .select({ id: dumpsTable.id })
+      .from(dumpsTable)
+      .where(d.eq(dumpsTable.id, dumpId))
+      .limit(1);
+
+    if (!dump) {
+      return { success: false, notFound: "dump" };
+    }
+
+    if (replyingTo) {
+      const [parentComment] = await db
+        .select({ id: commentsTable.id, dumpId: commentsTable.dumpId })
+        .from(commentsTable)
+        .where(d.eq(commentsTable.id, replyingTo))
+        .limit(1);
+
+      if (!parentComment) {
+        return { success: false, notFound: "parent_comment" };
+      }
+
+      if (parentComment.dumpId !== dumpId) {
+        return { success: false, parentMismatch: true };
+      }
+    }
+
+    let cursorDate: Date | null = null;
+    let cursorId: string | null = null;
+
+    if (cursor) {
+      try {
+        const decoded = JSON.parse(
+          Buffer.from(cursor, "base64").toString("utf-8"),
+        );
+
+        if (
+          typeof decoded.createdAt !== "number" ||
+          typeof decoded.id !== "string"
+        ) {
+          return { success: false, invalidCursor: true };
+        }
+
+        cursorDate = new Date(decoded.createdAt);
+        cursorId = decoded.id;
+      } catch {
+        return { success: false, invalidCursor: true };
+      }
+    }
+
+    const cursorCondition =
+      cursorDate && cursorId
+        ? d.or(
+            d.lt(commentsTable.createdAt, cursorDate),
+            d.and(
+              d.eq(commentsTable.createdAt, cursorDate),
+              d.lt(commentsTable.id, cursorId),
+            ),
+          )
+        : undefined;
+
+    const whereConditions = [
+      d.eq(commentsTable.dumpId, dumpId),
+      replyingTo
+        ? d.eq(commentsTable.replyingTo, replyingTo)
+        : d.isNull(commentsTable.replyingTo),
+      cursorCondition,
+    ].filter((v) => v);
+
+    const safeLimit = Math.min(Math.max(limit, 1), 50);
+
+    const results = await db
+      .select({
+        id: commentsTable.id,
+        dumpId: commentsTable.dumpId,
+        content: commentsTable.content,
+        replyingTo: commentsTable.replyingTo,
+        likes: commentsTable.likes,
+        replyCount: commentsTable.replyCount,
+        createdAt: commentsTable.createdAt,
+        updatedAt: commentsTable.updatedAt,
+        author: {
+          id: usersTable.id,
+          username: usersTable.username,
+          displayName: usersInfoTable.displayName,
+          avatar: usersInfoTable.avatar,
+        },
+        likeId: commentLikesTable.id,
+      })
+      .from(commentsTable)
+      .innerJoin(usersTable, d.eq(commentsTable.userId, usersTable.id))
+      .innerJoin(
+        usersInfoTable,
+        d.eq(commentsTable.userId, usersInfoTable.userId),
+      )
+      .leftJoin(
+        commentLikesTable,
+        d.and(
+          d.eq(commentLikesTable.commentId, commentsTable.id),
+          d.eq(commentLikesTable.userId, currentUserId),
+        ),
+      )
+      .where(d.and(...whereConditions))
+      .orderBy(d.desc(commentsTable.createdAt), d.desc(commentsTable.id))
+      .limit(safeLimit + 1);
+
+    const hasMore = results.length > safeLimit;
+    const items = hasMore ? results.slice(0, safeLimit) : results;
+    const lastItem = items.at(-1);
+
+    const mappedItems: CommentItem[] = items.map(({ likeId, ...comment }) => ({
+      ...comment,
+      isLiked: Boolean(likeId),
+    }));
+
+    const nextCursor =
+      hasMore && lastItem
+        ? Buffer.from(
+            JSON.stringify({
+              createdAt: lastItem.createdAt.getTime(),
+              id: lastItem.id,
+            }),
+          ).toString("base64")
+        : null;
+
+    return {
+      success: true,
+      data: mappedItems,
+      nextCursor,
+    };
   }
 
   public static async getFeed(
