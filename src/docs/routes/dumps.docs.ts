@@ -11,6 +11,7 @@ import {
   dumpCommentBodySchema,
   dumpCommentParamsSchema,
   dumpCommentsQuerySchema,
+  dumpCommentDeleteSchema,
 } from "../../controllers/dumps.js";
 import { getApiMdFile, registry } from "../openapi.js";
 import {
@@ -411,6 +412,95 @@ registry.registerPath({
                 message: z.literal("Parent comment not found."),
               })
               .openapi({ title: "ParentCommentNotFound" }),
+          ]),
+        },
+      },
+    },
+  },
+});
+
+// DELETE /comments docs
+registry.registerPath({
+  method: "delete",
+  path: "/comments",
+  summary: "/comments",
+  description: getApiMdFile("delete-comment"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: dumpCommentDeleteSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("Comment deleted successfully."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "Comment does not belong to this dump.",
+                ),
+              })
+              .openapi({ title: "CommentDumpMismatch" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal(
+              "You do not have permission to delete this comment.",
+            ),
+          }),
+        },
+      },
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Comment not found."),
+              })
+              .openapi({ title: "CommentNotFound" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Dump not found."),
+              })
+              .openapi({ title: "DumpNotFound" }),
           ]),
         },
       },
