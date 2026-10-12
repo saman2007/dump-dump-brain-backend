@@ -1,6 +1,6 @@
 {
   "name": "dump-dump-brain",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "description": "A blog API project.",
   "main": "index.js",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^9.1.0",
-    "@scalar/express-api-reference": "^0.10.23",
+    "@scalar/express-api-reference": "^0.10.28",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.3.0",
     "cookie-parser": "^1.4.7",

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-12
+
+### Added
+- Create thought dump API (`POST /dumps`).
+- Update thought dump API (`PATCH /dumps/:dumpId`).
+- Record dump view API (`POST /dumps/:dumpId/view`).
+- React to dump API (`POST /dumps/:dumpId/reaction`).
+- Personalized dumps feed API (`GET /dumps/feed`).
+- Post comment and reply API (`POST /dumps/:dumpId/comments`).
+- Get comments API (`GET /dumps/:dumpId/comments`).
+- Delete comment API (`DELETE /dumps/:dumpId/comments/:commentId`).
+- `dumps` table (supporting views, hotScore, reactionsCount, commentsCount, mood).
+- `reactions` table (unique reaction per user per dump).
+- `views` table (historical view tracking).
+- `comments` table (self-referencing replies, likes, replyCount).
+- `comment_likes` table (preventing duplicate likes per user).
+- Added `Dump` tag and full OpenAPI / Scalar documentation for all dumps and comments endpoints.
+- Added new Bruno API requests for testing dumps and comments endpoints.
+
+### Changed
+- Updated scalar(`@scalar/express-api-reference`) from version `0.10.23` to `0.10.28`
+
 ## [1.2.0] - 2026-09-29
 
 ### Added
