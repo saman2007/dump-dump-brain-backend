@@ -291,18 +291,30 @@ export const dumpCommentsGetController: Controller<{
   });
 };
 
-export const dumpCommentDeleteSchema = z.object({
+export const dumpCommentDeleteParamsSchema = z.object({
   dumpId: z.string().min(1),
   commentId: z.string().min(1),
 });
-export type DumpCommentDeleteType = z.infer<typeof dumpCommentDeleteSchema>;
+export type DumpCommentDeleteParamsType = z.infer<
+  typeof dumpCommentDeleteParamsSchema
+>;
 
 export const dumpCommentDeleteController: Controller<null> = async (
   req,
   res,
 ) => {
   const { userId } = req.accessTokenPayload!;
-  const { dumpId, commentId } = req.body as DumpCommentDeleteType;
+  const paramResult = dumpCommentDeleteParamsSchema.safeParse(req.params);
+
+  if (!paramResult.success) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: "Invalid route parameters.",
+    });
+  }
+
+  const { dumpId, commentId } = paramResult.data;
 
   const result = await Dump.deleteComment({
     dumpId,

@@ -11,7 +11,7 @@ import {
   dumpCommentBodySchema,
   dumpCommentParamsSchema,
   dumpCommentsQuerySchema,
-  dumpCommentDeleteSchema,
+  dumpCommentDeleteParamsSchema,
 } from "../../controllers/dumps.js";
 import { getApiMdFile, registry } from "../openapi.js";
 import {
@@ -419,23 +419,17 @@ registry.registerPath({
   },
 });
 
-// DELETE /comments docs
+// DELETE /dumps/{dumpId}/comments/{commentId} docs
 registry.registerPath({
   method: "delete",
-  path: "/comments",
-  summary: "/comments",
+  path: "/dumps/{dumpId}/comments/{commentId}",
+  summary: "/dumps/{dumpId}/comments/{commentId}",
   description: getApiMdFile("delete-comment"),
   tags: ["Dump"],
   security: [{ [authComponent.name]: [] }],
   request: {
     cookies: z.object({ access_token: z.string() }),
-    body: {
-      content: {
-        "application/json": {
-          schema: dumpCommentDeleteSchema,
-        },
-      },
-    },
+    params: dumpCommentDeleteParamsSchema,
   },
   responses: {
     200: {
