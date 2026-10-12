@@ -4,7 +4,7 @@ import type { Request } from "express";
 
 import type { Middleware } from "../types/api.js";
 import db from "../db/db.js";
-import { actionKeysTable, actionTypes } from "../db/schemas/actionKeys.js";
+import { actionKeysTable, actionTypes } from "../db/schemas/auth/actionKeys.js";
 import { hashSHA256 } from "../utils/utils.js";
 
 /**

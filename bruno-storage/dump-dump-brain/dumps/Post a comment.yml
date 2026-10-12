@@ -1,0 +1,16 @@
+info:
+  name: Post a comment
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{DEV_URL}}/dumps/{dumpId}/comments"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

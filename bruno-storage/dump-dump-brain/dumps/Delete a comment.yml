@@ -1,0 +1,16 @@
+info:
+  name: Delete a comment
+  type: http
+  seq: 8
+
+http:
+  method: DELETE
+  url: "{{DEV_URL}}/dumps/{dumpId}/comments/{commentId}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

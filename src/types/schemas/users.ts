@@ -1,5 +1,5 @@
 import type { InferEnum } from "drizzle-orm";
-import type { userRoleEnum, UserSelect } from "../../db/schemas/users.js";
+import type { userRoleEnum, UserSelect } from "../../db/schemas/auth/users.js";
 
 export type FullAuthUser = UserSelect;
 

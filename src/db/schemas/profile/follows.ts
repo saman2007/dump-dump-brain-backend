@@ -1,10 +1,11 @@
 import * as p from "drizzle-orm/pg-core";
 import * as d from "drizzle-orm";
 
-import { usersTable } from "./users.js";
-import { timestamps } from "../columnHelpers.js";
+import { usersTable } from "../auth/users.js";
+import { timestamps } from "../../columnHelpers.js";
+import profileSchema from "./index.js";
 
-export const followsTable = p.snakeCase.table(
+export const followsTable = profileSchema.table(
   "follows",
   {
     id: p.uuid().primaryKey().defaultRandom(),

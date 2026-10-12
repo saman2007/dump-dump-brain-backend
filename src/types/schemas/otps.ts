@@ -1,5 +1,5 @@
 import type { InferEnum } from "drizzle-orm";
 
-import type { otpTypeEnum } from "../../db/schemas/otps.js";
+import type { otpTypeEnum } from "../../db/schemas/auth/otps.js";
 
 export type OTPType = InferEnum<typeof otpTypeEnum>;

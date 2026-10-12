@@ -28,7 +28,7 @@ export function generateOpenAPIDocument() {
     openapi: "3.2.0",
     info: {
       title: "Dump Dump Brain API Docs",
-      version: "1.2.0",
+      version: "1.3.0",
       description: getApiMdFile("info"),
     },
     tags: [
@@ -40,6 +40,7 @@ export function generateOpenAPIDocument() {
       { name: "Account", description: getApiMdFile("account") },
       { name: "Sessions", description: getApiMdFile("sessions") },
       { name: "User", description: getApiMdFile("user") },
+      { name: "Dump", description: getApiMdFile("dump") },
     ],
     servers: [
       {

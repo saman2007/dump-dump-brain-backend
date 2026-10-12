@@ -2,7 +2,7 @@ import * as d from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 import db from "../db/db.js";
-import { otpsTable } from "../db/schemas/otps.js";
+import { otpsTable } from "../db/schemas/auth/otps.js";
 import {
   generateOTP,
   generateRandomString,
@@ -10,7 +10,7 @@ import {
   hashSHA256,
   ServiceError,
 } from "../utils/utils.js";
-import { actionKeysTable } from "../db/schemas/actionKeys.js";
+import { actionKeysTable } from "../db/schemas/auth/actionKeys.js";
 import type { OTPType } from "../types/schemas/otps.js";
 
 export class OTP {

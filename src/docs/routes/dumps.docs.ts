@@ -1,0 +1,566 @@
+import z from "zod";
+
+import {
+  dumpFeedQuerySchema,
+  dumpPatchBodySchema,
+  dumpPatchParamsSchema,
+  dumpPostSchema,
+  dumpReactionBodySchema,
+  dumpReactionParamsSchema,
+  dumpViewParamsSchema,
+  dumpCommentBodySchema,
+  dumpCommentParamsSchema,
+  dumpCommentsQuerySchema,
+  dumpCommentDeleteParamsSchema,
+} from "../../controllers/dumps.js";
+import { getApiMdFile, registry } from "../openapi.js";
+import {
+  authComponent,
+  jwtErrorResponse,
+  validationErrorResponseSchema,
+} from "../schemas.js";
+import { DUMP_MOOD, DUMP_REACTION } from "../../utils/constants.js";
+
+
+// POST /dumps docs
+registry.registerPath({
+  method: "post",
+  path: "/dumps",
+  summary: "/dumps",
+  description: getApiMdFile("post-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: dumpPostSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              id: z.uuid(),
+            }),
+            message: z.literal("Posted dump successfully."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: validationErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+  },
+});
+
+// PATCH /dumps/{dumpId} docs
+registry.registerPath({
+  method: "patch",
+  path: "/dumps/{dumpId}",
+  summary: "/dumps/{dumpId}",
+  description: getApiMdFile("patch-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpPatchParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: dumpPatchBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("Dump updated successfully."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "At least one of 'content' or 'mood' must be provided.",
+                ),
+              })
+              .openapi({ title: "NoDataProvided" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("Dump not found."),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// POST /dumps/{dumpId}/reaction docs
+registry.registerPath({
+  method: "post",
+  path: "/dumps/{dumpId}/reaction",
+  summary: "/dumps/{dumpId}/reaction",
+  description: getApiMdFile("reaction-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpReactionParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: dumpReactionBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.string().openapi({
+              example: "Reaction added successfully.",
+              description:
+                "It is one of 'Reaction added successfully.', 'Reaction updated successfully.', or 'Reaction removed successfully.' depending on the action performed.",
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: validationErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("Dump not found."),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// POST /dumps/{dumpId}/view docs
+registry.registerPath({
+  method: "post",
+  path: "/dumps/{dumpId}/view",
+  summary: "/dumps/{dumpId}/view",
+  description: getApiMdFile("view-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpViewParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("View recorded successfully."),
+          }),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal("Dump not found."),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// POST /dumps/{dumpId}/comments docs
+registry.registerPath({
+  method: "post",
+  path: "/dumps/{dumpId}/comments",
+  summary: "/dumps/{dumpId}/comments",
+  description: getApiMdFile("post-comment"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpCommentParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: dumpCommentBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              id: z.string().uuid(),
+            }),
+            message: z.literal("Comment posted successfully."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "Parent comment does not belong to this dump.",
+                ),
+              })
+              .openapi({ title: "ParentCommentMismatch" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Dump not found."),
+              })
+              .openapi({ title: "DumpNotFound" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Parent comment not found."),
+              })
+              .openapi({ title: "ParentCommentNotFound" }),
+          ]),
+        },
+      },
+    },
+  },
+});
+
+export const commentAuthorSchema = registry.register(
+  "CommentAuthor",
+  z.object({
+    id: z.string().uuid(),
+    username: z.string(),
+    avatar: z.string().nullable(),
+    displayName: z.string().nullable(),
+  }),
+);
+
+export const commentItemSchema = registry.register(
+  "CommentItem",
+  z.object({
+    id: z.string().uuid(),
+    dumpId: z.string().uuid(),
+    content: z.string(),
+    replyingTo: z.string().uuid().nullable(),
+    likes: z.number(),
+    replyCount: z.number(),
+    isLiked: z.boolean(),
+    createdAt: z.date(),
+    updatedAt: z.date().nullable(),
+    author: commentAuthorSchema,
+  }),
+);
+
+// GET /dumps/{dumpId}/comments docs
+registry.registerPath({
+  method: "get",
+  path: "/dumps/{dumpId}/comments",
+  summary: "/dumps/{dumpId}/comments",
+  description: getApiMdFile("get-comments"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpCommentParamsSchema,
+    query: dumpCommentsQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              items: z.array(commentItemSchema),
+              nextCursor: z.string().nullable(),
+            }),
+            message: z.null(),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "Parent comment does not belong to this dump.",
+                ),
+              })
+              .openapi({ title: "ParentCommentMismatch" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Invalid cursor provided."),
+              })
+              .openapi({ title: "InvalidCursor" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Dump not found."),
+              })
+              .openapi({ title: "DumpNotFound" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Parent comment not found."),
+              })
+              .openapi({ title: "ParentCommentNotFound" }),
+          ]),
+        },
+      },
+    },
+  },
+});
+
+// DELETE /dumps/{dumpId}/comments/{commentId} docs
+registry.registerPath({
+  method: "delete",
+  path: "/dumps/{dumpId}/comments/{commentId}",
+  summary: "/dumps/{dumpId}/comments/{commentId}",
+  description: getApiMdFile("delete-comment"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    params: dumpCommentDeleteParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.null(),
+            message: z.literal("Comment deleted successfully."),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            validationErrorResponseSchema,
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal(
+                  "Comment does not belong to this dump.",
+                ),
+              })
+              .openapi({ title: "CommentDumpMismatch" }),
+          ]),
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            data: z.null(),
+            message: z.literal(
+              "You do not have permission to delete this comment.",
+            ),
+          }),
+        },
+      },
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.union([
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Comment not found."),
+              })
+              .openapi({ title: "CommentNotFound" }),
+            z
+              .object({
+                success: z.literal(false),
+                data: z.null(),
+                message: z.literal("Dump not found."),
+              })
+              .openapi({ title: "DumpNotFound" }),
+          ]),
+        },
+      },
+    },
+  },
+});
+
+export const feedAuthorSchema = registry.register(
+  "FeedAuthor",
+  z.object({
+    id: z.string().uuid(),
+    username: z.string(),
+    avatar: z.string().nullable(),
+    displayName: z.string().nullable(),
+  }),
+);
+
+export const feedDumpItemSchema = registry.register(
+  "FeedDumpItem",
+  z.object({
+    id: z.string().uuid(),
+    content: z.string(),
+    mood: z.enum(DUMP_MOOD),
+    reactionsCount: z.record(z.enum(DUMP_REACTION), z.number()),
+    commentsCount: z.number(),
+    createdAt: z.date(),
+    author: feedAuthorSchema,
+  }),
+);
+
+// GET /dumps/feed docs
+registry.registerPath({
+  method: "get",
+  path: "/dumps/feed",
+  summary: "/dumps/feed",
+  description: getApiMdFile("feed-dump"),
+  tags: ["Dump"],
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+    query: dumpFeedQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              items: z.array(feedDumpItemSchema),
+              nextCursor: z.string().optional(),
+            }),
+            message: z.null(),
+          }),
+        },
+      },
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: validationErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      $ref: `#/components/responses/${jwtErrorResponse.name}`,
+    },
+  },
+});

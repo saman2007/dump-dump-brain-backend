@@ -4,7 +4,7 @@ import db from "../db/db.js";
 import {
   usersInfoTable,
   type UsersInfoInsert,
-} from "../db/schemas/usersInfo.js";
+} from "../db/schemas/profile/usersInfo.js";
 import type {
   FollowInfo,
   FollowItem,
@@ -13,8 +13,8 @@ import type {
   UserInfoTypes,
 } from "../types/schemas/usersInfo.js";
 import { getColumnsExcept } from "../utils/utils.js";
-import { usersTable } from "../db/schemas/users.js";
-import { followsTable } from "../db/schemas/follows.js";
+import { usersTable } from "../db/schemas/auth/users.js";
+import { followsTable } from "../db/schemas/profile/follows.js";
 
 export class UserInfo {
   private static readonly FIELD_EXCLUDES: Record<
@@ -103,19 +103,17 @@ export class User {
     cursor: Date | null,
     cursorId: string | null = null,
   ): Promise<FollowItem[]> {
-    const truncatedCreatedAt = d.sql<Date>`date_trunc('milliseconds', ${followsTable.createdAt})`;
-
     const cursorCondition =
       cursor && cursorId
         ? d.or(
-            d.lt(truncatedCreatedAt, cursor),
+            d.lt(followsTable.createdAt, cursor),
             d.and(
-              d.eq(truncatedCreatedAt, cursor),
+              d.eq(followsTable.createdAt, cursor),
               d.lt(followsTable.id, cursorId),
             ),
           )
         : cursor
-          ? d.lt(truncatedCreatedAt, cursor)
+          ? d.lt(followsTable.createdAt, cursor)
           : undefined;
 
     const followingUsers = await db
@@ -128,12 +126,7 @@ export class User {
         followId: followsTable.id,
       })
       .from(followsTable)
-      .where(
-        d.and(
-          d.eq(followsTable.followingId, userId),
-          cursorCondition,
-        ),
-      )
+      .where(d.and(d.eq(followsTable.followingId, userId), cursorCondition))
       .innerJoin(usersTable, d.eq(followsTable.followerId, usersTable.id))
       .innerJoin(
         usersInfoTable,
@@ -175,12 +168,7 @@ export class User {
         followId: followsTable.id,
       })
       .from(followsTable)
-      .where(
-        d.and(
-          d.eq(followsTable.followerId, userId),
-          cursorCondition,
-        ),
-      )
+      .where(d.and(d.eq(followsTable.followerId, userId), cursorCondition))
       .innerJoin(usersTable, d.eq(followsTable.followingId, usersTable.id))
       .innerJoin(
         usersInfoTable,

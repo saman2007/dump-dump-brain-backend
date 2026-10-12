@@ -1,16 +1,16 @@
 import * as p from "drizzle-orm/pg-core";
-import type { InferEnum } from "drizzle-orm";
 
 import { usersTable } from "./users.js";
-import { timestamps } from "../columnHelpers.js";
+import { timestamps } from "../../columnHelpers.js";
+import authSchema from "./index.js";
 
-export const otpTypeEnum = p.pgEnum("otp_type", [
+export const otpTypeEnum = authSchema.enum("otp_type", [
   "account_verification",
   "password_reset",
   "two_factor",
 ]);
 
-export const otpsTable = p.snakeCase.table("otps", {
+export const otpsTable = authSchema.table("otps", {
   id: p.uuid().defaultRandom().primaryKey(),
   userId: p
     .uuid()

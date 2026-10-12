@@ -1,8 +1,9 @@
 import * as p from "drizzle-orm/pg-core";
 import { usersTable } from "./users.js";
-import { timestamps } from "../columnHelpers.js";
+import { timestamps } from "../../columnHelpers.js";
+import authSchema from "./index.js";
 
-export const sessionsTable = p.snakeCase.table("sessions", {
+export const sessionsTable = authSchema.table("sessions", {
   id: p.uuid().defaultRandom().primaryKey(),
   userId: p
     .uuid()
