@@ -8,6 +8,7 @@ import { commentsTable } from "../db/schemas/dump/comments.js";
 import { commentLikesTable } from "../db/schemas/dump/commentLikes.js";
 import type {
   CommentItem,
+  DumpMoodType,
   DumpsFeedCursor,
   FeedDumpItem,
   PatchDumpData,
@@ -503,6 +504,7 @@ export class Dump {
   public static async getFeed(
     userId: string,
     cursor?: string,
+    mood?: DumpMoodType,
   ): Promise<{ data: FeedDumpItem[]; cursor?: string }> {
     const TRENDING_DUMPS_NUMBER = 9;
     const COLD_START_DUMPS_NUMBER = 3;
@@ -556,6 +558,7 @@ export class Dump {
       .where(
         d.and(
           d.ne(dumpsTable.author, userId),
+          mood ? d.eq(dumpsTable.mood, mood) : undefined,
           excludeDumps.length > 0
             ? d.notInArray(dumpsTable.id, excludeDumps)
             : undefined,
@@ -583,6 +586,7 @@ export class Dump {
       .where(
         d.and(
           d.ne(dumpsTable.author, userId),
+          mood ? d.eq(dumpsTable.mood, mood) : undefined,
           d.lte(dumpsTable.views, COLD_START_MAX_VIEWS),
           excludeDumps.length > 0
             ? d.notInArray(dumpsTable.id, excludeDumps)
@@ -631,6 +635,7 @@ export class Dump {
         .where(
           d.and(
             d.ne(dumpsTable.author, userId),
+            mood ? d.eq(dumpsTable.mood, mood) : undefined,
             excludeDumps.length > 0
               ? d.notInArray(dumpsTable.id, excludeDumps)
               : undefined,
@@ -676,6 +681,7 @@ export class Dump {
         .where(
           d.and(
             d.ne(dumpsTable.author, userId),
+            mood ? d.eq(dumpsTable.mood, mood) : undefined,
             alreadySelectedIds.length > 0
               ? d.notInArray(dumpsTable.id, alreadySelectedIds)
               : undefined,

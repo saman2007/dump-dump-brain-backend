@@ -137,6 +137,7 @@ export const dumpViewPostController: Controller<null> = async (req, res) => {
 
 export const dumpFeedQuerySchema = z.object({
   cursor: z.string().optional(),
+  mood: z.enum(DUMP_MOOD).optional(),
 });
 export type DumpFeedQueryType = z.infer<typeof dumpFeedQuerySchema>;
 
@@ -145,9 +146,9 @@ export const dumpFeedGetController: Controller<{
   nextCursor?: string;
 }> = async (req, res) => {
   const { userId } = req.accessTokenPayload!;
-  const { cursor } = req.query as DumpFeedQueryType;
+  const { cursor, mood } = req.query as DumpFeedQueryType;
 
-  const result = await Dump.getFeed(userId, cursor);
+  const result = await Dump.getFeed(userId, cursor, mood);
 
   return res.status(200).json({
     success: true,

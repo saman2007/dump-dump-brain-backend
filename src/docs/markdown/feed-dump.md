@@ -17,3 +17,4 @@ Here are the details for each category:
 - By default, the API prioritizes dumps the user has not yet viewed. If there are no unviewed dumps left, it will backfill with previously viewed dumps.
 
 - A dump viewed more than 15 days ago is eligible to appear in the user's feed again.
+- Optionally filter by a specific mood using the `mood` query parameter (e.g. `?mood=happy`).

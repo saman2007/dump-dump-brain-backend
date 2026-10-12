@@ -64,6 +64,3 @@ export interface CommentItem {
   updatedAt: Date | null;
   author: CommentAuthor;
 }
-
-
-
