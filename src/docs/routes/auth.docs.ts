@@ -8,6 +8,7 @@ import {
   signupUserSchema,
 } from "../../controllers/auth.js";
 import {
+  authComponent,
   authUserSchema,
   jwtErrorResponse,
   validationErrorResponseSchema,
@@ -243,6 +244,76 @@ registry.registerPath({
       content: {
         "application/json": { schema: validationErrorResponseSchema },
       },
+    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
+  },
+});
+
+// /auth/me doc
+registry.registerPath({
+  method: "get",
+  path: "/auth/me",
+  summary: "/auth/me",
+  tags: ["Auth"],
+  description: getApiMdFile("get-me"),
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            message: z.null(),
+            data: authUserSchema,
+          }),
+        },
+      },
+    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            message: z.literal("User not found."),
+            data: z.null(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// /auth/signout doc
+registry.registerPath({
+  method: "post",
+  path: "/auth/signout",
+  summary: "/auth/signout",
+  tags: ["Auth"],
+  description: getApiMdFile("signout"),
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            message: z.literal("Signed out successfully."),
+            data: z.null(),
+          }),
+        },
+      },
+      headers: z.object({
+        "Set-Cookie": z.string().openapi({
+          description: "Clears `refresh_token` and `access_token` cookies.",
+        }),
+      }),
     },
     401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
   },

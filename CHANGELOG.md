@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-25
+
+### Added
+- Get logged-in user details API (`GET /auth/me`).
+- Sign out API (`POST /auth/signout`).
+
 ## [1.3.0] - 2026-10-12
 
 ### Added
