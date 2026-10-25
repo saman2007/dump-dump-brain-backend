@@ -286,3 +286,35 @@ registry.registerPath({
     },
   },
 });
+
+// /auth/signout doc
+registry.registerPath({
+  method: "post",
+  path: "/auth/signout",
+  summary: "/auth/signout",
+  tags: ["Auth"],
+  description: getApiMdFile("signout"),
+  security: [{ [authComponent.name]: [] }],
+  request: {
+    cookies: z.object({ access_token: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            message: z.literal("Signed out successfully."),
+            data: z.null(),
+          }),
+        },
+      },
+      headers: z.object({
+        "Set-Cookie": z.string().openapi({
+          description: "Clears `refresh_token` and `access_token` cookies.",
+        }),
+      }),
+    },
+    401: { $ref: `#/components/responses/${jwtErrorResponse.name}` },
+  },
+});

@@ -321,3 +321,25 @@ export const getMeGetController: Controller<AuthUserType> = async (
 
   return res.status(200).json({ success: true, data: user, message: null });
 };
+
+export const signoutPostController: Controller<null> = async (req, res) => {
+  const { sessionId } = req.accessTokenPayload!;
+
+  await Auth.deleteSession(sessionId);
+
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: IS_WEBSITE_SECURE,
+  });
+
+  res.clearCookie("refresh_token", {
+    httpOnly: true,
+    secure: IS_WEBSITE_SECURE,
+  });
+
+  return res.status(200).json({
+    success: true,
+    data: null,
+    message: "Signed out successfully.",
+  });
+};
