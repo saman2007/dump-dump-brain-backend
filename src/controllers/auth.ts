@@ -304,3 +304,20 @@ export const refreshTokenPostController: Controller<null> = async (
     next(err);
   }
 };
+
+export const getMeGetController: Controller<AuthUserType> = async (
+  req,
+  res,
+) => {
+  const { userId } = req.accessTokenPayload!;
+
+  const user = await AuthUser.getById(userId, "AUTH_USER");
+
+  if (!user) {
+    return res
+      .status(404)
+      .json({ success: false, data: null, message: "User not found." });
+  }
+
+  return res.status(200).json({ success: true, data: user, message: null });
+};

@@ -13,7 +13,9 @@ import {
   refreshTokenPostController,
   refreshTokenSchema,
   signin2FAPostController,
+  getMeGetController,
 } from "../controllers/auth.js";
+import { privateEndpoint } from "../middlewares/auth.js";
 
 const authRouter = express.Router();
 
@@ -40,5 +42,6 @@ authRouter.post(
   }),
   refreshTokenPostController,
 );
+authRouter.get("/auth/me", privateEndpoint, getMeGetController);
 
 export default authRouter;
